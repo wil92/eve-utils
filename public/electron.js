@@ -75,7 +75,7 @@ ipcMain.on('refresh-token', async (evt, data) => {
       logout();
     }
   } else {
-    updateTokenInUI();
+    updateTokenInUI(data.id);
   }
 });
 
