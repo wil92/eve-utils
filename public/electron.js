@@ -1,18 +1,28 @@
 const path = require('path');
 
-const {app, BrowserWindow} = require('electron');
+const {app, BrowserWindow, ipcMain} = require('electron');
 const isDev = require('electron-is-dev');
+
 const AuthService = require("./AuthService");
+const DataService = require('./DataService');
+const http = require("http");
 
 function getAuthConfig() {
   return {
     authorizeEndpoint: 'https://login.eveonline.com/v2/oauth/authorize/',
     clientId: '767560549db84d31959f24ba02ca0bab',
     scope: 'publicData',
-    redirectUri: 'http://localhost:4538/',
+    redirectUri: 'https://eveutils.guilledev.com/',
     tokenEndpoint: 'https://login.eveonline.com/v2/oauth/token'
   };
 }
+
+const dataService = DataService();
+dataService.loadData();
+
+const authService = AuthService(getAuthConfig());
+
+let window;
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -29,62 +39,80 @@ app.on('window-all-closed', () => {
 });
 
 function createAuthWindow() {
-  const authService = AuthService(getAuthConfig());
-
-  const win = new BrowserWindow({
+  window = new BrowserWindow({
     width: 800,
     height: 600,
-    title: 'Auth in EVE'
+    title: 'EVE utilities',
+    webPreferences: {
+      nodeIntegration: true,
+      preload: path.join(__dirname, 'preload.js'),
+    }
   });
 
-  const url = authService.requestAuthCode();
-  const fs = require('fs');
-  fs.writeFileSync('out.txt', url, {encoding: "utf8"})
-  win.loadURL(url);
   if (isDev) {
-    win.webContents.openDevTools({mode: 'detach'});
+    window.webContents.openDevTools({mode: 'right'});
   }
 
-  win.webContents.on('did-get-redirect-request', (event, oldUrl, newUrl) => {
-    /*
-      after successfuly authenticating
-      get auth code from the redirect uri
-      and use that and the code verifier
-      to request an access code
-    */
-    authService.requestAccessCode(newUrl).then(() => {
-      createAppWindow();
-      win.close();
+  if (!dataService.loadValue('auth')) {
+    openLoginPage();
+  } else {
+    openApp();
+  }
+}
+
+ipcMain.on('refresh-token', async () => {
+  const expire = dataService.loadValue('expire');
+  if (expire < new Date().getTime()) {
+    // try {
+    //   const authData = dataService.loadValue('auth');
+    //   const auth = await authService.refreshToken(authData.refresh_token);
+    //   dataService.saveValue('auth', auth);
+    //   dataService.saveValue('expire', new Date().getTime() + auth.expires_in * 1000 * 2 / 3);
+    //   updateTokenInUI();
+    // } catch (e) {
+    //   console.error(e);
+    //   openLoginPage();
+    // }
+  } else {
+    updateTokenInUI();
+  }
+});
+
+ipcMain.on('save-value', async (event, data) => {
+  dataService.saveValue(data.key, data.value);
+});
+
+ipcMain.on('load-value', async (event, data) => {
+  console.log('------', data);
+  window.webContents.send('in-message', {type: 'load-value-response', value: dataService.loadValue(data.key)});
+});
+
+function openLoginPage() {
+  window.loadURL(authService.requestAuthCode());
+
+  window.webContents.on('did-redirect-navigation', (event, newUrl) => {
+    authService.requestAccessCode(newUrl).then((auth) => {
+      // save auth information
+      dataService.saveValue('auth', auth);
+      dataService.saveValue('expire', new Date().getTime() + auth.expires_in * 1000 * 2 / 3);
+
+      openApp().then(() => {
+        updateTokenInUI();
+      });
     });
   });
 }
 
-function createAppWindow() {
-  // Create the browser window.
-  const win = new BrowserWindow({
-    width: 800,
-    height: 600,
-    title: 'utils',
-    webPreferences: {
-      nodeIntegration: true,
-    },
-  });
-
-  // and load the index.html of the app.
-  // win.loadFile("index.html");
-  win.loadURL(
+function openApp() {
+  return window.loadURL(
     isDev
       ? 'http://localhost:3000'
       : `file://${path.join(__dirname, '../build/index.html')}`
   );
-  // Open the DevTools.
-  if (isDev) {
-    win.webContents.openDevTools({mode: 'detach'});
-  }
 }
 
-// app.on('activate', () => {
-//   if (BrowserWindow.getAllWindows().length === 0) {
-//     createWindow();
-//   }
-// });
+function updateTokenInUI() {
+  const expire = dataService.loadValue('expire');
+  const auth = dataService.loadValue('auth');
+  window.webContents.send('in-message', {type: 'refresh-token-response', auth, expire});
+}
