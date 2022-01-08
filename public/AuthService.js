@@ -8,7 +8,8 @@ module.exports = (config) => {
     clientId: '',
     scope: '',
     redirectUri: '',
-    tokenEndpoint: ''
+    tokenEndpoint: '',
+    userInfoEndpoint: ''
   };
 
   return {
@@ -42,7 +43,7 @@ module.exports = (config) => {
 
             return rp(options)
               .then((response) => {
-                resolve(response);
+                resolve(JSON.parse(response));
               })
               .catch((err) => {
                 if (err) throw new Error(err);
@@ -68,6 +69,18 @@ module.exports = (config) => {
           "refresh_token": refreshToken,
           "scope": this.config.scope
         }
+      }).then(res => {
+        return JSON.parse(res);
+      });
+    },
+
+    getUserInfo(access_token) {
+      return rp({
+        method: 'GET',
+        url: this.config.userInfoEndpoint,
+        headers: {'Authorization': `Bearer ${access_token}`}
+      }).then(res => {
+        return JSON.parse(res);
       });
     },
 
