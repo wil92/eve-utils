@@ -3,22 +3,14 @@ const path = require('path');
 const {app, BrowserWindow, ipcMain} = require('electron');
 const isDev = require('electron-is-dev');
 
-const AuthService = require("./AuthService");
-const DataService = require('./DataService');
+const AuthService = require("./services/AuthService");
+const SyncDataService = require('./services/SyncDataService');
+const dataService = require('./services/DataService');
+const ordersService = require('./services/AnalyseOrdersService');
+const config = require('./services/config');
 
-function getAuthConfig() {
-  return {
-    authorizeEndpoint: 'https://login.eveonline.com/v2/oauth/authorize/',
-    clientId: '767560549db84d31959f24ba02ca0bab',
-    scope: 'publicData',
-    redirectUri: 'https://eveutils.guilledev.com/',
-    tokenEndpoint: 'https://login.eveonline.com/v2/oauth/token',
-    userInfoEndpoint: 'https://login.eveonline.com/oauth/verify'
-  };
-}
-
-const dataService = DataService();
-const authService = AuthService(getAuthConfig());
+const authService = AuthService(config);
+const syncDataService = SyncDataService();
 
 let window;
 
@@ -83,6 +75,24 @@ ipcMain.on('save-value', async (event, data) => {
 ipcMain.on('load-value', async (event, data) => {
   const value = await dataService.loadValue(data.key);
   window.webContents.send('in-message', {type: 'load-value-response', value, id: data.id});
+});
+
+ipcMain.on('sync-all-data', async (event, data) => {
+  const authData = await dataService.loadObjValue('auth');
+  await syncDataService.syncAllData(authData['access_token']);
+  window.webContents.send('in-message', {type: 'sync-all-data-response', id: data.id});
+});
+
+ipcMain.on('sync-orders-data', async (event, data) => {
+  const authData = await dataService.loadObjValue('auth');
+  await syncDataService.syncAllOrders(authData['access_token']);
+  window.webContents.send('in-message', {type: 'sync-orders-data-response', id: data.id});
+});
+
+ipcMain.on('calculate-market', async (event, data) => {
+  console.log('start market calculation');
+  const result = await ordersService.calculateBestOffers();
+  window.webContents.send('in-message', {type: 'calculate-market-response', id: data.id});
 });
 
 ipcMain.on('user-info', async (event, data) => {

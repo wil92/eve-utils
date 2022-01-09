@@ -63,6 +63,18 @@ function App() {
     console.log(userInfo);
   }
 
+  async function syncAllData() {
+    await sendMessageAndWaitResponse({type: 'sync-all-data'});
+  }
+
+  async function syncAllOrders() {
+    await sendMessageAndWaitResponse({type: 'sync-orders-data'});
+  }
+
+  async function calculateOrders() {
+    await sendMessageAndWaitResponse({type: 'calculate-market'});
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -73,6 +85,9 @@ function App() {
         <button onClick={click}>some</button>
         <button onClick={getRegionMarkets}>markets</button>
         <button onClick={getUserInfo}>user info</button>
+        <button onClick={syncAllData}>sync</button>
+        <button onClick={syncAllOrders}>sync orders</button>
+        <button onClick={calculateOrders}>calculate orders</button>
 
         <a
           className="App-link"

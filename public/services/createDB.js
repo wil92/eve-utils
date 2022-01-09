@@ -6,27 +6,6 @@ module.exports = [
        data TEXT
    );`,
 
-  `CREATE TABLE graphic
-   (
-       id   INTEGER PRIMARY KEY,
-       file TEXT
-   );`,
-
-  `CREATE TABLE type
-   (
-       id              INTEGER PRIMARY KEY,
-       name            TEXT,
-       capacity        REAL,
-       description     TEXT,
-       mass            REAL,
-       packaged_volume REAL,
-       published       INTEGER,
-       radius          REAL,
-       volume          REAL,
-       graphic_id      INTEGER,
-       FOREIGN KEY (graphic_id) REFERENCES graphic (id)
-   );`,
-
   `CREATE TABLE region
    (
        id          INTEGER PRIMARY KEY,
@@ -98,9 +77,25 @@ module.exports = [
        range         TEXT,
        volume_remain INTEGER,
        volume_total  INTEGER,
+       type_id       INTEGER,
        system_id     INTEGER,
        location_id   INTEGER,
        FOREIGN KEY (system_id) REFERENCES system (id),
        FOREIGN KEY (location_id) REFERENCES station (id)
+   );`,
+
+  `CREATE TABLE market_opportunity
+   (
+       id        INTEGER PRIMARY KEY AUTOINCREMENT,
+       earning   REAL,
+       available INTEGER,
+       requested INTEGER,
+       buy       REAL,
+       sell      REAL,
+       type_id   INTEGER,
+       buyer_id  INTEGER,
+       seller_id INTEGER,
+       FOREIGN KEY (buyer_id) REFERENCES market_order (id),
+       FOREIGN KEY (seller_id) REFERENCES market_order (id)
    );`
 ];
