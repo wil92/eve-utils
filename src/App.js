@@ -15,7 +15,7 @@ const typeCache = new Map();
 const customStyles = {
   content: {
     width: '200px',
-    height: '200px',
+    height: '350px',
     left: '50%',
     top: '50%',
     transform: 'translate(-50%, -50%)',
@@ -110,11 +110,13 @@ class App extends Component {
   }
 
   syncAllData() {
+    this.setState({showSyncModal: false});
     this.setState({block: true});
     sendMessage({type: 'sync-all-data'});
   }
 
   syncAllOrders() {
+    this.setState({showSyncModal: false});
     this.setState({block: true});
     sendMessage({type: 'sync-orders-data'});
   }
@@ -160,42 +162,56 @@ class App extends Component {
     this.setState({showRegionsModal: true});
   }
 
-  closeModal() {
-    this.setState({showRegionsModal: false});
-  }
-
   render() {
     return (
       <div className="App">
         {this.state.block && <Loading/>}
         <header className="App-header">
           <div>
-            <button onClick={() => this.syncAllData()}>sync data</button>
-            <button onClick={() => this.syncAllOrders()}>sync orders</button>
+            <button onClick={() => this.setState({showSyncModal: true})}>sync</button>
+            <Modal
+              isOpen={this.state.showSyncModal}
+              onRequestClose={() => this.setState({showSyncModal: false})}
+              style={customStyles}>
+              <h3>Sync options</h3>
 
-            <input className="filter"
-                   type="text"
-                   placeholder="money limit"
-                   value={this.state.moneyLimit || ''}
-                   onChange={evt => this.setState({moneyLimit: evt.target.value})}/>
-            <button onClick={() => this.changeMoneyLimit()}>&#8227;</button>
+              <button onClick={() => this.syncAllData()}>sync data</button>
+              <button onClick={() => this.syncAllOrders()}>sync orders</button>
+            </Modal>
 
-            <button className="filter" onClick={() => this.calculateOrders()}>calculate opportunities</button>
-            <button onClick={() => this.openSelectRegionsModal()}>select regions</button>
+            <button className="filter" onClick={() => this.setState({showFilterModal: true})}>filter</button>
+            <Modal
+              isOpen={this.state.showFilterModal}
+              onRequestClose={() => this.setState({showFilterModal: false})}
+              style={customStyles}>
+              <h3>Filter options</h3>
+
+              <div style={{display: 'flex', flexDirection: 'column'}}>
+                <label htmlFor="moneyLimit" style={{fontSize: '14px'}}>money limit</label>
+                <input style={{maxWidth: '100%'}} type="text"
+                       id="moneyLimit"
+                       placeholder="money limit"
+                       value={this.state.moneyLimit || ''}
+                       onChange={evt => this.setState({moneyLimit: evt.target.value})}/>
+              </div>
+              <div style={{height: '100%'}}/>
+              <button onClick={() => this.changeMoneyLimit()}>filter</button>
+            </Modal>
+
+            <button className="filter" onClick={() => this.openSelectRegionsModal()}>select regions</button>
             <Modal
               isOpen={this.state.showRegionsModal}
-              onRequestClose={() => this.closeModal()}
-              style={customStyles}
-              contentLabel="Example Modal"
-            >
+              onRequestClose={() => this.setState({showRegionsModal: false})}
+              style={customStyles}>
               <h3>Select regions</h3>
               <select name="region" id="region" multiple
                       value={this.state.selectedRegions}
                       onChange={this.handleRegionChange}>
-                {this.state.regions.map(r => (
-                  <option value={r.id}>{r.name}</option>
+                {this.state.regions.map((r, index) => (
+                  <option value={r.id} key={index}>{r.name}</option>
                 ))}
               </select>
+              <button style={{marginTop: '10px'}} onClick={() => this.calculateOrders()}>calculate opportunities</button>
             </Modal>
           </div>
 
