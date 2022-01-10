@@ -33,8 +33,8 @@ async function createAuthWindow() {
   await dataService.initDatabase();
 
   window = new BrowserWindow({
-    width: 1092,
-    height: 710,
+    width: 1350,
+    height: 700,
     title: 'EVE utilities',
     webPreferences: {
       nodeIntegration: true,
