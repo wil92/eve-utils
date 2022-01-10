@@ -1,17 +1,19 @@
 const path = require('path');
 
 const {app, BrowserWindow, ipcMain} = require('electron');
-const isDev = require('electron-is-dev');
 
 const AuthService = require("./services/AuthService");
 const SyncDataService = require('./services/SyncDataService');
 const dataService = require('./services/DataService');
 const ordersService = require('./services/AnalyseOrdersService');
 const config = require('./services/config');
+const url = require("url");
+const logsService = require("./services/LogsService");
 
 const authService = AuthService(config);
 const syncDataService = SyncDataService();
 
+const isDev = !app.isPackaged;
 let window;
 
 // This method will be called when Electron has finished
@@ -41,6 +43,7 @@ async function createAuthWindow() {
       preload: path.join(__dirname, 'preload.js'),
     }
   });
+  logsService.setWindow(window);
 
   if (isDev) {
     window.webContents.openDevTools({mode: 'right'});
@@ -80,23 +83,26 @@ ipcMain.on('load-value', async (event, data) => {
 ipcMain.on('sync-all-data', async (event, data) => {
   const authData = await dataService.loadObjValue('auth');
   await syncDataService.syncAllData(authData['access_token']);
-  window.webContents.send('in-message', {type: 'sync-all-data-response', id: data.id});
+  logsService.unblock();
 });
 
-ipcMain.on('sync-orders-data', async (event, data) => {
+ipcMain.on('sync-orders-data', async () => {
   const authData = await dataService.loadObjValue('auth');
   await syncDataService.syncAllOrders(authData['access_token']);
-  window.webContents.send('in-message', {type: 'sync-orders-data-response', id: data.id});
+  await sendTableResult({page: 1});
+  logsService.unblock();
 });
 
-ipcMain.on('calculate-market', async (event, data) => {
-  console.log('start market calculation');
+ipcMain.on('calculate-market', async () => {
+  logsService.log('Start market calculation');
   await ordersService.calculateBestOffers();
   await sendTableResult({page: 1});
+  logsService.unblock();
 });
 
 ipcMain.on('table-data', async (event, data) => {
   await sendTableResult(data);
+  logsService.unblock();
 });
 
 async function sendTableResult(data) {
@@ -158,7 +164,11 @@ function openApp() {
   return window.loadURL(
     isDev
       ? 'http://localhost:3000'
-      : `file://${path.join(__dirname, '../build/index.html')}`
+      : url.format({
+        pathname: path.join(__dirname, 'index.html'),
+        protocol: 'file',
+        slashes: true
+      })
   );
 }
 

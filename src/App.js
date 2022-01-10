@@ -4,6 +4,7 @@ import axios from "axios";
 import './App.css';
 import {jwtInterceptor} from "./services/AxiosInterceptor";
 import {observable, sendMessage, sendMessageAndWaitResponse} from "./services/MessageHandler";
+import Loading from "./Loading/Loading";
 
 jwtInterceptor();
 
@@ -21,7 +22,8 @@ class App extends Component {
         page: 0
       },
       pages: [],
-      moneyLimit: null
+      moneyLimit: null,
+      block: false,
     };
 
     observable.on(async (type, data) => {
@@ -39,6 +41,9 @@ class App extends Component {
           pagination: data.pagination,
           pages: this.calculatePagesInPagination(data.pagination.total, data.pagination.page)
         });
+      } else if (type === 'unblock-response') {
+        console.log('assssssss');
+        this.setState({block: false});
       }
     });
   }
@@ -77,33 +82,48 @@ class App extends Component {
 
   componentDidMount() {
     sendMessage({type: 'table-data', page: 1});
+    this.setState({block: true});
   }
 
   async syncAllData() {
-    await sendMessageAndWaitResponse({type: 'sync-all-data'});
+    this.setState({block: true});
+    sendMessage({type: 'sync-all-data'});
   }
 
   async syncAllOrders() {
-    await sendMessageAndWaitResponse({type: 'sync-orders-data'});
+    this.setState({block: true});
+    sendMessage({type: 'sync-orders-data'});
   }
 
   async calculateOrders() {
-    await sendMessageAndWaitResponse({type: 'calculate-market'});
+    this.setState({block: true});
+    sendMessage({type: 'calculate-market'});
   }
 
   changePage(page) {
-    sendMessage({type: 'table-data', page: page, moneyLimit: this.state.moneyLimit});
+    this.setState({block: true});
+    sendMessage({type: 'table-data', page: page, moneyLimit: this.getMoneyLimit()});
   }
 
   changeMoneyLimit() {
     if (this.state.moneyLimit) {
-      sendMessage({type: 'table-data', page: 1, moneyLimit: this.state.moneyLimit});
+      this.setState({block: true});
+      sendMessage({type: 'table-data', page: 1, moneyLimit: this.getMoneyLimit()});
     }
+  }
+
+  getMoneyLimit() {
+    try {
+      return +this.state.moneyLimit;
+    } catch (ignore) {
+    }
+    return null;
   }
 
   render() {
     return (
       <div className="App">
+        {this.state.block && <Loading/>}
         <header className="App-header">
           <div>
             <button onClick={() => this.syncAllData()}>sync data</button>

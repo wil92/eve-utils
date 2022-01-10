@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "main": "public/electron.js",
+  "homepage": ".",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
@@ -20,7 +21,7 @@
     "babel-register": "^6.26.0",
     "concurrently": "^7.0.0",
     "electron": "^16.0.6",
-    "electron-is-dev": "^2.0.0",
+    "electron-builder": "^22.14.5",
     "electron-rebuild": "^3.2.5",
     "wait-on": "^6.0.0"
   },
@@ -31,7 +32,9 @@
     "eject": "node_modules/.bin/react-scripts eject",
     "dev": "concurrently -k \"BROWSER=none npm start\" \"npm:electron\"",
     "electron": "wait-on tcp:3000 && electron .",
-    "server": "node server.js"
+    "server": "node server.js",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "dist:win": "npm run build && electron-builder --win"
   },
   "eslintConfig": {
     "extends": [
@@ -50,5 +53,33 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "build": {
+    "appId": "com.guilledev.eveutils",
+    "productName": "eve-utils",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin"
+    ],
+    "asar": true,
+    "linux": {
+      "category": "Network",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "msi",
+        "portable"
+      ],
+      "icon": "build/favicon.ico"
+    }
   }
 }

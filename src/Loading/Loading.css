@@ -1,0 +1,36 @@
+.Loading {
+    position: fixed;
+    width: calc(100vw - 60px);
+
+    height: 100vh;
+    background-color: rgba(40, 44, 52, 0.88);
+    padding: 30px;
+}
+
+.LoadingIcon {
+    width: 70px;
+    animation-name: spin;
+    animation-duration: 3s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg)
+    }
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+.Logs {
+    display: flex;
+    flex-direction: column;
+    font-size: 20px;
+    color: #fff;
+}
+
+.Log {
+    margin-top: 10px;
+}

@@ -1,4 +1,5 @@
 const dataService = require('./DataService');
+const logsService = require("./LogsService");
 
 module.exports = {
   async calculateBestOffers() {
@@ -6,6 +7,7 @@ module.exports = {
       const maxBuy = new Map();
       const minSell = new Map();
       const typesSet = new Set();
+      logsService.log("Query orders to the database");
       dataService.getOrders((err, order) => {
         const type = order['type_id'];
         typesSet.add(type);
@@ -31,6 +33,7 @@ module.exports = {
           }
         }
       }, () => {
+        logsService.log("Calculating best prices");
         let result = [];
         typesSet.forEach(type => {
           const max = maxBuy.get(type);
@@ -52,6 +55,7 @@ module.exports = {
       });
     });
 
+    logsService.log("Saving best prices in database");
     await dataService.cleanMarketOpportunity();
     await dataService.saveMarketOpportunities(bestOffers.map(bo => ({
       earning: bo.earning,

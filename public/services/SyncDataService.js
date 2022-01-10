@@ -1,6 +1,7 @@
 const http = require('./HttpService');
 const config = require('./config');
 const dataService = require('./DataService');
+const logsService = require("./LogsService");
 
 module.exports = () => {
   return {
@@ -15,7 +16,7 @@ module.exports = () => {
     },
 
     async syncRegions(accessToken) {
-      console.log('SYNC REGIONS (start)');
+      logsService.log('SYNC REGIONS (start)');
       const url = `${config.apiEndpoint}/v1/universe/regions/`;
       const regionsId = await http.get(url, accessToken);
       for (let i = 0; i < regionsId.length; i++) {
@@ -23,11 +24,11 @@ module.exports = () => {
         const r = await http.get(url, accessToken);
         await dataService.saveRegion(r);
       }
-      console.log('SYNC REGIONS (end)');
+      logsService.log('SYNC REGIONS (end)');
     },
 
     async syncConstellations(accessToken) {
-      console.log('SYNC CONSTELLATIONS (start)');
+      logsService.log('SYNC CONSTELLATIONS (start)');
       const url = `${config.apiEndpoint}/v1/universe/constellations/`;
       const constellationsId = await http.get(url, accessToken);
       for (let i = 0; i < constellationsId.length; i++) {
@@ -35,11 +36,11 @@ module.exports = () => {
         const c = await http.get(url, accessToken);
         await dataService.saveConstellation(c);
       }
-      console.log('SYNC CONSTELLATIONS (end)');
+      logsService.log('SYNC CONSTELLATIONS (end)');
     },
 
     async syncSystems(accessToken) {
-      console.log('SYNC SYSTEMS (start)');
+      logsService.log('SYNC SYSTEMS (start)');
       const url = `${config.apiEndpoint}/v1/universe/systems/`;
       const systemsId = await http.get(url, accessToken);
       for (let i = 0; i < systemsId.length; i++) {
@@ -53,30 +54,30 @@ module.exports = () => {
           }
         }
       }
-      console.log('SYNC SYSTEMS (end)');
+      logsService.log('SYNC SYSTEMS (end)');
     },
 
     async syncStation(accessToken, stationId) {
-      console.log('- SYNC STATION (start)');
+      logsService.log('- SYNC STATION (start)');
       const url = `${config.apiEndpoint}/v2/universe/stations/${stationId}`;
       const s = await http.get(url, accessToken);
       await dataService.saveStation(s);
-      console.log('- SYNC STATION (end)');
+      logsService.log('- SYNC STATION (end)');
     },
 
     async syncOrders(accessToken) {
-      console.log('SYNC ORDER (start)');
+      logsService.log('SYNC ORDER (start)');
       await dataService.cleanOrders();
       const regions = await dataService.getRegions();
       for (let i = 0; i < regions.length; i++) {
-        console.log(`- SYNC ORDER FROM REGION ${regions[i].id} (start)`);
+        logsService.log(`- SYNC ORDER FROM REGION ${regions[i].id} (start)`);
         const url = `${config.apiEndpoint}/v1/markets/${regions[i].id}/orders/`;
         const orders = await http.getWithPagination(url, accessToken);
-        console.log(`-- ${orders.length} orders`);
+        logsService.log(`-- ${orders.length} orders`);
         await dataService.saveOrders(orders);
-        console.log(`- SYNC ORDER FROM REGION ${regions[i].id} (end)`);
+        logsService.log(`- SYNC ORDER FROM REGION ${regions[i].id} (end)`);
       }
-      console.log('SYNC ORDER (end)');
+      logsService.log('SYNC ORDER (end)');
     },
   };
 };
