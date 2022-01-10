@@ -43,13 +43,14 @@ class App extends Component {
       moneyLimit: null,
       block: false,
       regions: [],
-      selectedRegions: [-1]
+      selectedRegions: [-1],
+      savedElements: []
     };
   }
 
   componentDidMount() {
     observable.pipe(filter(m => m.type === 'table-data-response')).subscribe(async (message) => {
-      const opportunities = message.data;
+      const opportunities = message.data.filter(d => d['seller_place'] && d['buyer_place']);
       for (let i = 0; i < opportunities.length; i++) {
         const type = await this.getType(opportunities[i]['type_id']);
         opportunities[i]['volume'] = type['packaged_volume'];
@@ -62,6 +63,7 @@ class App extends Component {
         pagination: message.pagination,
         pages: this.calculatePagesInPagination(message.pagination.total, message.pagination.page)
       });
+      this.setState({block: false});
     });
     observable.pipe(filter(m => m.type === 'unblock-response')).subscribe(() => {
       this.setState({block: false});
@@ -128,8 +130,10 @@ class App extends Component {
   }
 
   changePage(page) {
-    this.setState({block: true});
-    sendMessage({type: 'table-data', page: page, moneyLimit: this.getMoneyLimit()});
+    if (page !== this.state.pagination.page) {
+      this.setState({block: true});
+      sendMessage({type: 'table-data', page: page, moneyLimit: this.getMoneyLimit()});
+    }
   }
 
   changeMoneyLimit() {
@@ -158,8 +162,8 @@ class App extends Component {
     this.setState({selectedRegions: value});
   }
 
-  openSelectRegionsModal() {
-    this.setState({showRegionsModal: true});
+  saveElement(element) {
+    console.log(element);
   }
 
   render() {
@@ -198,7 +202,7 @@ class App extends Component {
               <button onClick={() => this.changeMoneyLimit()}>filter</button>
             </Modal>
 
-            <button className="filter" onClick={() => this.openSelectRegionsModal()}>select regions</button>
+            <button className="filter" onClick={() => this.setState({showRegionsModal: true})}>select regions</button>
             <Modal
               isOpen={this.state.showRegionsModal}
               onRequestClose={() => this.setState({showRegionsModal: false})}
@@ -211,7 +215,48 @@ class App extends Component {
                   <option value={r.id} key={index}>{r.name}</option>
                 ))}
               </select>
-              <button style={{marginTop: '10px'}} onClick={() => this.calculateOrders()}>calculate opportunities</button>
+              <button style={{marginTop: '10px'}} onClick={() => this.calculateOrders()}>calculate opportunities
+              </button>
+            </Modal>
+
+            <button className="filter" onClick={() => this.setState({showSavedElemModal: true})}>saved elements</button>
+            <Modal
+              isOpen={this.state.showSavedElemModal}
+              onRequestClose={() => this.setState({showSavedElemModal: false})}
+              style={{...customStyles.content, width: '100vw', height: '100vh'}}>
+              <h3>Saved elements</h3>
+              <table>
+                <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Earning</th>
+                  <th>Units available</th>
+                  <th>Units requested</th>
+                  <th>Buy cost</th>
+                  <th>Sell cost</th>
+                  <th>Volume</th>
+                  <th>Seller station</th>
+                  <th>Buyer station</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                {this.state.savedElements.map((op, index) => (
+                  <tr className="savedItems" key={index} onDoubleClick={() => this.saveElement(op)}>
+                    <th>{op.name} {op.iconId &&
+                    <img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`} alt={op.name}/>}</th>
+                    <th>{op.earning} ISK</th>
+                    <th>{op.available}</th>
+                    <th>{op.requested}</th>
+                    <th>{op.buy} ISK</th>
+                    <th>{op.sell} ISK</th>
+                    <th>{op.volume}m&#179;</th>
+                    <th>{op['seller_place']}</th>
+                    <th>{op['buyer_place']}</th>
+                  </tr>
+                ))}
+                </tbody>
+              </table>
             </Modal>
           </div>
 
@@ -232,7 +277,7 @@ class App extends Component {
 
             <tbody>
             {this.state.opportunities.map((op, index) => (
-              <tr key={index}>
+              <tr className="mainItems" key={index} onDoubleClick={() => this.saveElement(op)}>
                 <th>{op.name} {op.iconId &&
                 <img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`} alt={op.name}/>}</th>
                 <th>{op.earning} ISK</th>
@@ -250,7 +295,7 @@ class App extends Component {
 
           <div>
             {this.state.pages.map((p, index) => (
-              <button key={index} onClick={() => this.changePage(p)}>
+              <button className={p === this.state.pagination.page && 'currentPage'} key={index} onClick={() => this.changePage(p)}>
                 {p}
               </button>
             ))}

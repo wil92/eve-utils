@@ -73,6 +73,7 @@ ipcMain.on('logout', async () => {
 
 ipcMain.on('save-value', async (event, data) => {
   await dataService.saveValue(data.key, data.value);
+  window.webContents.send('in-message', {type: 'save-value-response', id: data.id});
 });
 
 ipcMain.on('load-value', async (event, data) => {
@@ -97,12 +98,10 @@ ipcMain.on('calculate-market', async (event, data) => {
   logsService.log('Start market calculation' + JSON.stringify(data));
   await ordersService.calculateBestOffers(data.regions);
   await sendTableResult({page: 1});
-  logsService.unblock();
 });
 
 ipcMain.on('table-data', async (event, data) => {
   await sendTableResult(data);
-  logsService.unblock();
 });
 
 ipcMain.on('get-regions', async (event, data) => {
