@@ -2,13 +2,13 @@ const dataService = require('./DataService');
 const logsService = require("./LogsService");
 
 module.exports = {
-  async calculateBestOffers(region) {
+  async calculateBestOffers(regions) {
     const bestOffers = await new Promise((resolve, reject) => {
       const maxBuy = new Map();
       const minSell = new Map();
       const typesSet = new Set();
       logsService.log("Query orders to the database");
-      dataService.getOrders(region, (err, order) => {
+      dataService.getOrders(regions, (err, order) => {
         const type = order['type_id'];
         typesSet.add(type);
         if (order['is_buy_order']) {

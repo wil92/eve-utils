@@ -95,7 +95,7 @@ ipcMain.on('sync-orders-data', async () => {
 
 ipcMain.on('calculate-market', async (event, data) => {
   logsService.log('Start market calculation' + JSON.stringify(data));
-  await ordersService.calculateBestOffers(data.region);
+  await ordersService.calculateBestOffers(data.regions);
   await sendTableResult({page: 1});
   logsService.unblock();
 });

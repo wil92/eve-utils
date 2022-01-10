@@ -93,10 +93,15 @@ module.exports = {
     });
   },
 
-  getOrders(region, callback, end) {
+  getOrders(regions, callback, end) {
     let sql = 'SELECT * FROM market_order;';
-    if (region !== -1) {
-      sql = `SELECT * FROM market_order AS mo INNER JOIN system AS s ON s.id = mo.system_id INNER JOIN constellation AS c ON c.id = s.constellation_id WHERE c.region_id = ${region};`;
+    if (+regions[0] !== -1) {
+      let where = `c.region_id = ${regions[0]}`;
+      for (let i = 1; i < regions.length; i++) {
+        where += ` OR c.region_id = ${regions[i]}`;
+      }
+
+      sql = `SELECT * FROM market_order AS mo INNER JOIN system AS s ON s.id = mo.system_id INNER JOIN constellation AS c ON c.id = s.constellation_id WHERE ${where};`;
     }
     console.log(sql);
     database.serialize(() => {

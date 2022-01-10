@@ -27,7 +27,7 @@ class App extends Component {
       moneyLimit: null,
       block: false,
       regions: [],
-      region: -1
+      selectedRegions: [-1]
     };
 
     observable.on(async (type, data) => {
@@ -107,8 +107,8 @@ class App extends Component {
 
   calculateOrders() {
     this.setState({block: true});
-    console.log(this.state.region);
-    sendMessage({type: 'calculate-market', region: this.state.region});
+    const regions = this.state.selectedRegions.some(v => (v === '-1' || v === -1)) ? [-1] : this.state.selectedRegions;
+    sendMessage({type: 'calculate-market', regions});
   }
 
   changePage(page) {
@@ -132,8 +132,14 @@ class App extends Component {
   }
 
   handleRegionChange(e) {
-    console.log(e.target.value);
-    this.setState({region: e.target.value});
+    const options = e.target.options;
+    const value = [];
+    for (let i = 0, l = options.length; i < l; i++) {
+      if (options[i].selected) {
+        value.push(options[i].value);
+      }
+    }
+    this.setState({selectedRegions: value});
   }
 
   render() {
@@ -153,8 +159,8 @@ class App extends Component {
             <button onClick={() => this.changeMoneyLimit()}>&#8227;</button>
 
             <button className="filter" onClick={() => this.calculateOrders()}>calculate opportunities</button>
-            <select name="region" id="region"
-                    value={this.state.region}
+            <select name="region" id="region" multiple
+                    value={this.state.selectedRegions}
                     onChange={this.handleRegionChange}>
               {this.state.regions.map(r => (
                 <option value={r.id}>{r.name}</option>
