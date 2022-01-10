@@ -1,45 +1,25 @@
-export const observable = {
-  observers: [],
+import {first, Subject, takeUntil, tap, timer} from "rxjs";
 
-  on(observer) {
-    this.observers.push(observer);
-  },
-
-  emit(type, data) {
-    this.observers.forEach(obs => {
-      if (typeof obs === "function") {
-        obs(type, data);
-      }
-    });
-  },
-
-  disconnect(observer) {
-    const l = this.observers.length;
-    this.observers = this.observers.filter(obs => obs !== observer);
-    return l !== this.observers.length;
-  }
-};
+export const observable = new Subject();
 
 window.addEventListener('message', evt => {
-  observable.emit(evt.data.type, evt.data);
+  observable.next(evt.data);
 });
 
 export async function sendMessageAndWaitResponse(message) {
   const id = randomId();
+
   window.postMessage({...message, id});
   return new Promise((resolve, reject) => {
-    const callback = function (type, data) {
-      if (data.id === id && data.type !== message.type) {
-        resolve(data);
-        observable.disconnect(callback);
-      }
-    };
-    observable.on(callback);
-    setTimeout(() => {
-      if (observable.disconnect(callback)) {
-        reject('Time exceeded');
-      }
-    }, 3000);
+    const subscription = observable.pipe(
+      takeUntil(timer(3000).pipe(tap(() => reject('Message response time-limit')))),
+      first(newMessage => {
+        return newMessage.id === id && newMessage.type !== message.type;
+      })
+    ).subscribe(newMessage => {
+      resolve(newMessage);
+      subscription.unsubscribe();
+    });
   });
 }
 

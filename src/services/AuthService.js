@@ -1,9 +1,9 @@
 import {observable} from "./MessageHandler";
 
-observable.on((type, data) => {
-  if (type === 'refresh-token-response') {
-    authService.authData = data.auth;
-    authService.expire = data.expire;
+observable.subscribe(message => {
+  if (message.type === 'refresh-token-response') {
+    authService.authData = message.auth;
+    authService.expire = message.expire;
   }
 });
 

@@ -12,14 +12,20 @@ class Loading extends Component {
     this.state = {
       logs: []
     };
+  }
 
-    observable.on(async (type, data) => {
-      if (type === 'log-response') {
-        this.addNewLog(data.message);
-      } else if (type === 'unblock-response') {
+  componentDidMount() {
+    this.subscription = observable.subscribe(message => {
+      if (message.type === 'log-response') {
+        this.addNewLog(message.message);
+      } else if (message.type === 'unblock-response') {
         this.setState({logs: []});
       }
     });
+  }
+
+  componentWillUnmount() {
+    this.subscription.unsubscribe();
   }
 
   addNewLog(message) {

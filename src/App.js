@@ -1,5 +1,7 @@
 import {Component} from "react";
+import Modal from 'react-modal';
 import axios from "axios";
+import {filter} from "rxjs";
 
 import './App.css';
 import {jwtInterceptor} from "./services/AxiosInterceptor";
@@ -9,6 +11,20 @@ import Loading from "./Loading/Loading";
 jwtInterceptor();
 
 const typeCache = new Map();
+
+const customStyles = {
+  content: {
+    width: '200px',
+    height: '200px',
+    left: '50%',
+    top: '50%',
+    transform: 'translate(-50%, -50%)',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+};
+
+Modal.setAppElement('#root');
 
 class App extends Component {
 
@@ -29,30 +45,28 @@ class App extends Component {
       regions: [],
       selectedRegions: [-1]
     };
-
-    observable.on(async (type, data) => {
-      if (type === 'table-data-response') {
-        const opportunities = data.data;
-        for (let i = 0; i < opportunities.length; i++) {
-          const type = await this.getType(opportunities[i]['type_id']);
-          opportunities[i]['volume'] = type['packaged_volume'];
-          opportunities[i]['name'] = type['name'];
-          opportunities[i]['description'] = type['description'];
-          opportunities[i]['iconId'] = type['icon_id'];
-        }
-        this.setState({
-          opportunities,
-          pagination: data.pagination,
-          pages: this.calculatePagesInPagination(data.pagination.total, data.pagination.page)
-        });
-      } else if (type === 'unblock-response') {
-        console.log('assssssss');
-        this.setState({block: false});
-      }
-    });
   }
 
   componentDidMount() {
+    observable.pipe(filter(m => m.type === 'table-data-response')).subscribe(async (message) => {
+      const opportunities = message.data;
+      for (let i = 0; i < opportunities.length; i++) {
+        const type = await this.getType(opportunities[i]['type_id']);
+        opportunities[i]['volume'] = type['packaged_volume'];
+        opportunities[i]['name'] = type['name'];
+        opportunities[i]['description'] = type['description'];
+        opportunities[i]['iconId'] = type['icon_id'];
+      }
+      this.setState({
+        opportunities,
+        pagination: message.pagination,
+        pages: this.calculatePagesInPagination(message.pagination.total, message.pagination.page)
+      });
+    });
+    observable.pipe(filter(m => m.type === 'unblock-response')).subscribe(() => {
+      this.setState({block: false});
+    });
+
     sendMessage({type: 'table-data', page: 1});
     this.setState({block: true});
     this.getRegions();
@@ -142,6 +156,14 @@ class App extends Component {
     this.setState({selectedRegions: value});
   }
 
+  openSelectRegionsModal() {
+    this.setState({showRegionsModal: true});
+  }
+
+  closeModal() {
+    this.setState({showRegionsModal: false});
+  }
+
   render() {
     return (
       <div className="App">
@@ -159,16 +181,26 @@ class App extends Component {
             <button onClick={() => this.changeMoneyLimit()}>&#8227;</button>
 
             <button className="filter" onClick={() => this.calculateOrders()}>calculate opportunities</button>
-            <select name="region" id="region" multiple
-                    value={this.state.selectedRegions}
-                    onChange={this.handleRegionChange}>
-              {this.state.regions.map(r => (
-                <option value={r.id}>{r.name}</option>
-              ))}
-            </select>
+            <button onClick={() => this.openSelectRegionsModal()}>select regions</button>
+            <Modal
+              isOpen={this.state.showRegionsModal}
+              onRequestClose={() => this.closeModal()}
+              style={customStyles}
+              contentLabel="Example Modal"
+            >
+              <h3>Select regions</h3>
+              <select name="region" id="region" multiple
+                      value={this.state.selectedRegions}
+                      onChange={this.handleRegionChange}>
+                {this.state.regions.map(r => (
+                  <option value={r.id}>{r.name}</option>
+                ))}
+              </select>
+            </Modal>
           </div>
 
           <table>
+            <thead>
             <tr>
               <th>Name</th>
               <th>Earning</th>
@@ -180,9 +212,11 @@ class App extends Component {
               <th>Seller station</th>
               <th>Buyer station</th>
             </tr>
+            </thead>
 
-            {this.state.opportunities.map(op => (
-              <tr>
+            <tbody>
+            {this.state.opportunities.map((op, index) => (
+              <tr key={index}>
                 <th>{op.name} {op.iconId &&
                 <img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`} alt={op.name}/>}</th>
                 <th>{op.earning} ISK</th>
@@ -195,11 +229,12 @@ class App extends Component {
                 <th>{op['buyer_place']}</th>
               </tr>
             ))}
+            </tbody>
           </table>
 
           <div>
-            {this.state.pages.map(p => (
-              <button onClick={() => this.changePage(p)}>
+            {this.state.pages.map((p, index) => (
+              <button key={index} onClick={() => this.changePage(p)}>
                 {p}
               </button>
             ))}
