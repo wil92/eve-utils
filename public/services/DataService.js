@@ -69,6 +69,17 @@ module.exports = {
     });
   },
 
+  async getAllRegions() {
+    return new Promise((resolve, reject) => {
+      database.all('select * from region;', [], (err, rows) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(rows);
+      })
+    });
+  },
+
   async saveValue(key, value) {
     return new Promise((resolve, reject) => {
       const data = typeof value === "object" ? JSON.stringify(value) : value;
@@ -82,9 +93,14 @@ module.exports = {
     });
   },
 
-  getOrders(callback, end) {
+  getOrders(region, callback, end) {
+    let sql = 'SELECT * FROM market_order;';
+    if (region !== -1) {
+      sql = `SELECT * FROM market_order AS mo INNER JOIN system AS s ON s.id = mo.system_id INNER JOIN constellation AS c ON c.id = s.constellation_id WHERE c.region_id = ${region};`;
+    }
+    console.log(sql);
     database.serialize(() => {
-      database.each('SELECT * FROM market_order;', (err, result) => {
+      database.each(sql, (err, result) => {
         callback(err, result);
       }, () => {
         end();

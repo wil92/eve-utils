@@ -65,7 +65,6 @@
       "!**/node_modules/*.d.ts",
       "!**/node_modules/.bin"
     ],
-    "asar": true,
     "linux": {
       "category": "Network",
       "target": [
@@ -74,11 +73,7 @@
       ]
     },
     "win": {
-      "target": [
-        "nsis",
-        "msi",
-        "portable"
-      ],
+      "target": "portable",
       "icon": "build/favicon.ico"
     }
   }

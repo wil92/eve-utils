@@ -15,6 +15,8 @@ class App extends Component {
   constructor(props) {
     super(props);
 
+    this.handleRegionChange = this.handleRegionChange.bind(this);
+
     this.state = {
       opportunities: [],
       pagination: {
@@ -24,6 +26,8 @@ class App extends Component {
       pages: [],
       moneyLimit: null,
       block: false,
+      regions: [],
+      region: -1
     };
 
     observable.on(async (type, data) => {
@@ -46,6 +50,17 @@ class App extends Component {
         this.setState({block: false});
       }
     });
+  }
+
+  componentDidMount() {
+    sendMessage({type: 'table-data', page: 1});
+    this.setState({block: true});
+    this.getRegions();
+  }
+
+  async getRegions() {
+    const data = await sendMessageAndWaitResponse({type: 'get-regions'});
+    this.setState({regions: [{name: "All regions", id: -1}, ...data.regions]});
   }
 
   async getType(typeId) {
@@ -80,24 +95,20 @@ class App extends Component {
     return pages;
   }
 
-  componentDidMount() {
-    sendMessage({type: 'table-data', page: 1});
-    this.setState({block: true});
-  }
-
-  async syncAllData() {
+  syncAllData() {
     this.setState({block: true});
     sendMessage({type: 'sync-all-data'});
   }
 
-  async syncAllOrders() {
+  syncAllOrders() {
     this.setState({block: true});
     sendMessage({type: 'sync-orders-data'});
   }
 
-  async calculateOrders() {
+  calculateOrders() {
     this.setState({block: true});
-    sendMessage({type: 'calculate-market'});
+    console.log(this.state.region);
+    sendMessage({type: 'calculate-market', region: this.state.region});
   }
 
   changePage(page) {
@@ -120,6 +131,11 @@ class App extends Component {
     return null;
   }
 
+  handleRegionChange(e) {
+    console.log(e.target.value);
+    this.setState({region: e.target.value});
+  }
+
   render() {
     return (
       <div className="App">
@@ -128,7 +144,6 @@ class App extends Component {
           <div>
             <button onClick={() => this.syncAllData()}>sync data</button>
             <button onClick={() => this.syncAllOrders()}>sync orders</button>
-            <button onClick={() => this.calculateOrders()}>calculate opportunities</button>
 
             <input className="filter"
                    type="text"
@@ -136,6 +151,15 @@ class App extends Component {
                    value={this.state.moneyLimit || ''}
                    onChange={evt => this.setState({moneyLimit: evt.target.value})}/>
             <button onClick={() => this.changeMoneyLimit()}>&#8227;</button>
+
+            <button className="filter" onClick={() => this.calculateOrders()}>calculate opportunities</button>
+            <select name="region" id="region"
+                    value={this.state.region}
+                    onChange={this.handleRegionChange}>
+              {this.state.regions.map(r => (
+                <option value={r.id}>{r.name}</option>
+              ))}
+            </select>
           </div>
 
           <table>
