@@ -92,6 +92,37 @@ module.exports = {
     });
   },
 
+  async getMarketOpportunities(page = 0, pageSize = 20, moneyLimit) {
+    let where = '';
+    if (moneyLimit) {
+      where = `WHERE sell < ${moneyLimit}`;
+    }
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT *, (SELECT s.name FROM station AS s WHERE mo.buyer_id = s.id) buyer_place, (SELECT s2.name FROM station AS s2 WHERE mo.seller_id = s2.id) seller_place FROM market_opportunity AS mo ${where} LIMIT ? OFFSET ?;`
+      database.all(sql, [pageSize, page * pageSize], (err, rows) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(rows);
+      });
+    });
+  },
+
+  async getMarketOpportunitiesCount(moneyLimit) {
+    let where = '';
+    if (moneyLimit) {
+      where = `WHERE sell < ${moneyLimit}`;
+    }
+    return new Promise((resolve, reject) => {
+      database.all(`SELECT count(*) as total FROM market_opportunity ${where};`, [], (err, rows) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(rows[0].total);
+      });
+    });
+  },
+
   async cleanMarketOpportunity() {
     return new Promise((resolve, reject) => {
       database.run('DELETE FROM market_opportunity;', [], (err) => {

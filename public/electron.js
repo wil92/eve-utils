@@ -33,8 +33,8 @@ async function createAuthWindow() {
   await dataService.initDatabase();
 
   window = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1092,
+    height: 710,
     title: 'EVE utilities',
     webPreferences: {
       nodeIntegration: true,
@@ -91,9 +91,23 @@ ipcMain.on('sync-orders-data', async (event, data) => {
 
 ipcMain.on('calculate-market', async (event, data) => {
   console.log('start market calculation');
-  const result = await ordersService.calculateBestOffers();
-  window.webContents.send('in-message', {type: 'calculate-market-response', id: data.id});
+  await ordersService.calculateBestOffers();
+  await sendTableResult({page: 1});
 });
+
+ipcMain.on('table-data', async (event, data) => {
+  await sendTableResult(data);
+});
+
+async function sendTableResult(data) {
+  const result = await dataService.getMarketOpportunities(data.page || 0, 20, data.moneyLimit);
+  const count = await dataService.getMarketOpportunitiesCount(data.moneyLimit);
+  window.webContents.send('in-message', {
+    type: 'table-data-response',
+    data: result,
+    pagination: {total: Math.floor(count / 20) + (count % 20 === 0 ? 0 : 1), page: data.page || 0}
+  });
+}
 
 ipcMain.on('user-info', async (event, data) => {
   const authData = await dataService.loadObjValue('auth');

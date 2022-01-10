@@ -60,8 +60,8 @@ module.exports = {
       buy: bo.max.price,
       sell: bo.min.price,
       type_id: bo.type,
-      buyer_id: bo.max.id,
-      seller_id: bo.min.id
+      buyer_id: bo.max['location_id'],
+      seller_id: bo.min['location_id']
     })));
     return bestOffers;
   }

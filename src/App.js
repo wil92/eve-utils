@@ -1,105 +1,164 @@
+import {Component} from "react";
 import axios from "axios";
 
-import logo from './logo.svg';
 import './App.css';
 import {jwtInterceptor} from "./services/AxiosInterceptor";
-import {sendMessageAndWaitResponse} from "./services/MessageHandler";
+import {observable, sendMessage, sendMessageAndWaitResponse} from "./services/MessageHandler";
 
 jwtInterceptor();
 
-function App() {
+const typeCache = new Map();
 
-  // window.addEventListener('message', evt => {
-  //   switch (evt.data.type) {
-  //     case 'refresh-token-response':
-  //       console.log(evt.data.auth);
-  //       break;
-  //     case 'load-value-response':
-  //       console.log(evt.data.value);
-  //       break;
-  //   }
-  // });
+class App extends Component {
 
-  function click() {
-    // Make a request for a user with a given ID
-    axios.get('https://esi.evetech.net/v1/universe/regions/')
-      .then(function (response) {
-        // handle success
-        // console.log(response);
-        response.data.forEach(id => getRegionInfo(id));
-      })
-      .catch(function (error) {
-        // handle error
-        console.log(error);
-      });
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      opportunities: [],
+      pagination: {
+        total: 0,
+        page: 0
+      },
+      pages: [],
+      moneyLimit: null
+    };
+
+    observable.on(async (type, data) => {
+      if (type === 'table-data-response') {
+        const opportunities = data.data;
+        for (let i = 0; i < opportunities.length; i++) {
+          const type = await this.getType(opportunities[i]['type_id']);
+          opportunities[i]['volume'] = type['packaged_volume'];
+          opportunities[i]['name'] = type['name'];
+          opportunities[i]['description'] = type['description'];
+          opportunities[i]['iconId'] = type['icon_id'];
+        }
+        this.setState({
+          opportunities,
+          pagination: data.pagination,
+          pages: this.calculatePagesInPagination(data.pagination.total, data.pagination.page)
+        });
+      }
+    });
   }
 
-  function getRegionInfo(id) {
-    axios.get(`https://esi.evetech.net/v1/universe/regions/${id}/`)
-      .then(function (response) {
-        // handle success
-        console.log(response.data);
-      })
-      .catch(function (error) {
-        // handle error
-        console.log(error);
-      });
+  async getType(typeId) {
+    if (typeCache.has(typeId)) {
+      return typeCache.get(typeId);
+    }
+    return new Promise(resolve => {
+      axios.get(`https://esi.evetech.net/v3/universe/types/${typeId}/`)
+        .then(res => {
+          typeCache.set(typeId, res.data);
+          resolve(res.data);
+        })
+        .catch(() => resolve({}));
+    });
   }
 
-  function getRegionMarkets() {
-    axios.get(`https://esi.evetech.net/v1/markets/${10000016}/orders/`)
-      .then(function (response) {
-        // handle success
-        console.log(response.data);
-      })
-      .catch(function (error) {
-        // handle error
-        console.log(error);
-      });
+  calculatePagesInPagination(total, page) {
+    const shift = 3;
+    const pages = [page];
+    for (let i = page + 1; i <= Math.min(total, page + shift); i++) {
+      pages.push(i);
+    }
+    for (let i = page - 1; i > Math.max(0, page - shift); i--) {
+      pages.unshift(i);
+    }
+    if (pages[0] !== 1) {
+      pages.unshift(1);
+    }
+    if (pages[pages.length - 1] !== total) {
+      pages.push(total);
+    }
+    return pages;
   }
 
-  async function getUserInfo() {
-    const userInfo = await sendMessageAndWaitResponse({type: 'user-info'});
-    console.log(userInfo);
+  componentDidMount() {
+    sendMessage({type: 'table-data', page: 1});
   }
 
-  async function syncAllData() {
+  async syncAllData() {
     await sendMessageAndWaitResponse({type: 'sync-all-data'});
   }
 
-  async function syncAllOrders() {
+  async syncAllOrders() {
     await sendMessageAndWaitResponse({type: 'sync-orders-data'});
   }
 
-  async function calculateOrders() {
+  async calculateOrders() {
     await sendMessageAndWaitResponse({type: 'calculate-market'});
   }
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo"/>
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <button onClick={click}>some</button>
-        <button onClick={getRegionMarkets}>markets</button>
-        <button onClick={getUserInfo}>user info</button>
-        <button onClick={syncAllData}>sync</button>
-        <button onClick={syncAllOrders}>sync orders</button>
-        <button onClick={calculateOrders}>calculate orders</button>
+  changePage(page) {
+    sendMessage({type: 'table-data', page: page, moneyLimit: this.state.moneyLimit});
+  }
 
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+  changeMoneyLimit() {
+    if (this.state.moneyLimit) {
+      sendMessage({type: 'table-data', page: 1, moneyLimit: this.state.moneyLimit});
+    }
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <div>
+            <button onClick={() => this.syncAllData()}>sync data</button>
+            <button onClick={() => this.syncAllOrders()}>sync orders</button>
+            <button onClick={() => this.calculateOrders()}>calculate opportunities</button>
+
+            <input className="filter"
+                   type="text"
+                   placeholder="money limit"
+                   value={this.state.moneyLimit || ''}
+                   onChange={evt => this.setState({moneyLimit: evt.target.value})}/>
+            <button onClick={() => this.changeMoneyLimit()}>&#8227;</button>
+          </div>
+
+          <table>
+            <tr>
+              <th>Name</th>
+              <th>Earning</th>
+              <th>Units available</th>
+              <th>Units requested</th>
+              <th>Buy cost</th>
+              <th>Sell cost</th>
+              <th>Volume</th>
+              <th>Seller station</th>
+              <th>Buyer station</th>
+            </tr>
+
+            {this.state.opportunities.map(op => (
+              <tr>
+                <th>{op.name} {op.iconId &&
+                <img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`} alt={op.name}/>}</th>
+                <th>{op.earning} ISK</th>
+                <th>{op.available}</th>
+                <th>{op.requested}</th>
+                <th>{op.buy} ISK</th>
+                <th>{op.sell} ISK</th>
+                <th>{op.volume}m&#179;</th>
+                <th>{op['seller_place']}</th>
+                <th>{op['buyer_place']}</th>
+              </tr>
+            ))}
+          </table>
+
+          <div>
+            {this.state.pages.map(p => (
+              <button onClick={() => this.changePage(p)}>
+                {p}
+              </button>
+            ))}
+          </div>
+
+        </header>
+      </div>
+    );
+  }
 }
 
 export default App;
