@@ -76,7 +76,7 @@
     },
     "win": {
       "target": "portable",
-      "icon": "./pngegg.png"
+      "icon": "./build/pngegg.png"
     }
   }
 }

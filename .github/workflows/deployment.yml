@@ -49,7 +49,7 @@ jobs:
 
       - run: npm ci
       - run: |
-          sudo apt install -y wine
+          sudo dpkg --add-architecture i386 && apt-get update && apt-get install wine32
           GH_TOKEN=${{ secrets.TOKEN }} npm run dist
           mkdir dist/compress
           find dist -name '*.deb' -exec mv '{}' dist/compress \;
