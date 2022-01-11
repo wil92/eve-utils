@@ -34,34 +34,61 @@ jobs:
 #          username: ${{ secrets.REMOTE_USER }}
 #          privateKey: ${{ secrets.SERVER_SSH_KEY}}
 
-  build:
+#  build:
+#
+#    if: github.ref == 'refs/heads/master'
+#
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - uses: actions/setup-node@v2
+#        with:
+#          node-version: 14.x
+#
+#      - run: npm ci
+#      - run: |
+#          sudo apt-get update
+#          sudo apt-get install wine
+#          GH_TOKEN=${{ secrets.TOKEN }} npm run dist
+#          mkdir dist/compress
+#          find dist -name '*.deb' -exec mv '{}' dist/compress \;
+#          find dist -name '*.exe' -exec mv '{}' dist/compress \;
+#
+#      - name: Copy project to the hosting
+#        uses: easingthemes/ssh-deploy@v2.1.5
+#        env:
+#          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+#          ARGS: "-rltgoDzvO"
+#          SOURCE: "dist/compress/"
+#          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+#          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+#          TARGET: ${{ secrets.REMOTE_TARGET_VERSION }}
 
-    if: github.ref == 'refs/heads/master'
+  release:
+    runs-on: ${{ matrix.os }}
 
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out Git repository
+        uses: actions/checkout@v1
 
-      - uses: actions/setup-node@v2
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 14
 
-      - run: npm ci
-      - run: |
-          sudo apt-get update
-          sudo apt-get install wine
-          GH_TOKEN=${{ secrets.TOKEN }} npm run dist
-          mkdir dist/compress
-          find dist -name '*.deb' -exec mv '{}' dist/compress \;
-          find dist -name '*.exe' -exec mv '{}' dist/compress \;
+      - name: Build/release Electron app
+        uses: samuelmeuli/action-electron-builder@v1
+        with:
+          # GitHub token, automatically provided to the action
+          # (No need to define this secret in the repo settings)
+          github_token: ${{ secrets.TOKEN }}
 
-      - name: Copy project to the hosting
-        uses: easingthemes/ssh-deploy@v2.1.5
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          ARGS: "-rltgoDzvO"
-          SOURCE: "dist/compress/"
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          TARGET: ${{ secrets.REMOTE_TARGET_VERSION }}
+          # If the commit is tagged with a version (e.g. "v1.0.0"),
+          # release the app after building
+          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
