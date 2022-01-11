@@ -7,64 +7,33 @@ on: [ push, pull_request ]
 
 jobs:
 
-#  deploy:
-#
-#    if: github.ref == 'refs/heads/master'
-#
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - uses: actions/checkout@v2
-#
-#      - name: Copy project to the hosting
-#        uses: easingthemes/ssh-deploy@v2.1.5
-#        env:
-#          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-#          ARGS: "-rltgoDzvO --delete"
-#          SOURCE: ""
-#          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-#          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-#          TARGET: ${{ secrets.REMOTE_TARGET }}
-#
-#      - name: Deploy project with docker in hosting
-#        uses: garygrossgarten/github-action-ssh@release
-#        with:
-#          command: cd ${{ secrets.REMOTE_TARGET }} && PORT=${{ secrets.PORT }} ./deploy.sh
-#          host: ${{ secrets.REMOTE_HOST }}
-#          username: ${{ secrets.REMOTE_USER }}
-#          privateKey: ${{ secrets.SERVER_SSH_KEY}}
+  deploy:
 
-#  build:
-#
-#    if: github.ref == 'refs/heads/master'
-#
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - uses: actions/checkout@v2
-#
-#      - uses: actions/setup-node@v2
-#        with:
-#          node-version: 14.x
-#
-#      - run: npm ci
-#      - run: |
-#          sudo apt-get update
-#          sudo apt-get install wine
-#          GH_TOKEN=${{ secrets.TOKEN }} npm run dist
-#          mkdir dist/compress
-#          find dist -name '*.deb' -exec mv '{}' dist/compress \;
-#          find dist -name '*.exe' -exec mv '{}' dist/compress \;
-#
-#      - name: Copy project to the hosting
-#        uses: easingthemes/ssh-deploy@v2.1.5
-#        env:
-#          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-#          ARGS: "-rltgoDzvO"
-#          SOURCE: "dist/compress/"
-#          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-#          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-#          TARGET: ${{ secrets.REMOTE_TARGET_VERSION }}
+    if: github.ref == 'refs/heads/master'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Copy project to the hosting
+        uses: easingthemes/ssh-deploy@v2.1.5
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: ""
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ secrets.REMOTE_TARGET }}
+
+      - name: Deploy project with docker in hosting
+        uses: garygrossgarten/github-action-ssh@release
+        with:
+          command: cd ${{ secrets.REMOTE_TARGET }} && PORT=${{ secrets.PORT }} ./deploy.sh
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          privateKey: ${{ secrets.SERVER_SSH_KEY}}
+
 
   release:
     runs-on: ${{ matrix.os }}
