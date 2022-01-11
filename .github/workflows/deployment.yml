@@ -7,7 +7,34 @@ on: [ push, pull_request ]
 
 jobs:
 
-  deploy:
+#  deploy:
+#
+#    if: github.ref == 'refs/heads/master'
+#
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - name: Copy project to the hosting
+#        uses: easingthemes/ssh-deploy@v2.1.5
+#        env:
+#          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+#          ARGS: "-rltgoDzvO --delete"
+#          SOURCE: ""
+#          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+#          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+#          TARGET: ${{ secrets.REMOTE_TARGET }}
+#
+#      - name: Deploy project with docker in hosting
+#        uses: garygrossgarten/github-action-ssh@release
+#        with:
+#          command: cd ${{ secrets.REMOTE_TARGET }} && PORT=${{ secrets.PORT }} ./deploy.sh
+#          host: ${{ secrets.REMOTE_HOST }}
+#          username: ${{ secrets.REMOTE_USER }}
+#          privateKey: ${{ secrets.SERVER_SSH_KEY}}
+
+  build:
 
     if: github.ref == 'refs/heads/master'
 
@@ -16,20 +43,20 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Copy project to the hosting
-        uses: easingthemes/ssh-deploy@v2.1.5
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          ARGS: "-rltgoDzvO --delete"
-          SOURCE: ""
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          TARGET: ${{ secrets.REMOTE_TARGET }}
-
-      - name: Deploy project with docker in hosting
-        uses: garygrossgarten/github-action-ssh@release
+      - uses: actions/setup-node@v2
         with:
-          command: cd ${{ secrets.REMOTE_TARGET }} && PORT=${{ secrets.PORT }} ./deploy.sh
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          privateKey: ${{ secrets.SERVER_SSH_KEY}}
+          node-version: 14.x
+
+      - run: npm ci
+      - run: npm run dist:linux
+      - run: npm run dist:win
+
+#      - name: Copy project to the hosting
+#        uses: easingthemes/ssh-deploy@v2.1.5
+#        env:
+#          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+#          ARGS: "-rltgoDzvO"
+#          SOURCE: "dist/"
+#          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+#          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+#          TARGET: ${{ secrets.REMOTE_TARGET_VERSION }}
