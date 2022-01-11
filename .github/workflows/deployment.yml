@@ -7,9 +7,22 @@ on: [ push, pull_request ]
 
 jobs:
 
+  pre_deploy:
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      file: ${{ steps.validation.outputs.exist }}
+
+    steps:
+      - id: validation
+        run: echo "::set-output name=exist::false"
+
   deploy:
 
-    if: github.ref == 'refs/heads/master'
+    needs: pre_deploy
+
+    if: needs.pre_deploy.outputs.file == true && github.ref == 'refs/heads/master'
 
     runs-on: ubuntu-latest
 
@@ -36,6 +49,9 @@ jobs:
 
 
   release:
+
+    if: startsWith(github.tag, 'v')
+
     runs-on: ${{ matrix.os }}
 
     strategy:
