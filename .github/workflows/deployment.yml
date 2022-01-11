@@ -51,12 +51,18 @@ jobs:
       - run: npm run dist:linux
       - run: npm run dist:win
 
-#      - name: Copy project to the hosting
-#        uses: easingthemes/ssh-deploy@v2.1.5
-#        env:
-#          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-#          ARGS: "-rltgoDzvO"
-#          SOURCE: "dist/"
-#          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-#          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-#          TARGET: ${{ secrets.REMOTE_TARGET_VERSION }}
+      - run: |
+          apt install -y wine
+          mkdir dist/compress
+          find dist -name '*.deb' -exec mv '{}' dist/compress \;
+          find dist -name '*.exe' -exec mv '{}' dist/compress \;
+
+      - name: Copy project to the hosting
+        uses: easingthemes/ssh-deploy@v2.1.5
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-rltgoDzvO"
+          SOURCE: "dist/compress/"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ secrets.REMOTE_TARGET_VERSION }}

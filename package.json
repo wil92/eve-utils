@@ -4,6 +4,8 @@
   "private": true,
   "main": "public/electron.js",
   "homepage": ".",
+  "author": "Guillermo <ggjnez92@gmail.com>",
+  "description": "EVE online utils",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
@@ -76,7 +78,7 @@
     },
     "win": {
       "target": "portable",
-      "icon": "build/favicon.ico"
+      "icon": "build/pngegg.ico"
     }
   }
 }
