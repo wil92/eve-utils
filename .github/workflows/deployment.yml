@@ -48,8 +48,7 @@ jobs:
           node-version: 14.x
 
       - run: npm ci
-      - run: npm run dist:linux
-      - run: npm run dist:win
+      - run: GH_TOKEN=${{ secrets.TOKEN }} npm run dist
 
       - run: |
           apt install -y wine
