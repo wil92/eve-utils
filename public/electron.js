@@ -38,7 +38,7 @@ async function createAuthWindow() {
     width: 1350,
     height: 700,
     title: 'EVE utilities',
-    icon: './pngegg.png',
+    icon: path.join(__dirname, 'pngegg.png') ,
     webPreferences: {
       nodeIntegration: true,
       preload: path.join(__dirname, 'preload.js'),
