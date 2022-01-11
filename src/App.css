@@ -41,6 +41,17 @@ table {
     font-size: 12px;
     border-collapse: collapse;
     margin: 5px;
+    min-width: 100%;
+}
+
+.subtable > thead > tr > th {
+    color: #000;
+    border: solid .001rem rgba(0, 0, 0, 0.37);
+}
+
+.subtable > tbody > tr > th {
+    color: #000;
+    border: solid .001rem rgba(0, 0, 0, 0.37);
 }
 
 th {
@@ -51,7 +62,7 @@ th {
     color: white;
 }
 
-.mainItems:hover {
+.mainItems:hover, .selected {
     background-color: #000;
 }
 

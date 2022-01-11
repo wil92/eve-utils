@@ -11,6 +11,7 @@ import Loading from "./Loading/Loading";
 jwtInterceptor();
 
 const typeCache = new Map();
+const savedElem = new Set();
 
 const customStyles = {
   content: {
@@ -164,6 +165,21 @@ class App extends Component {
 
   saveElement(element) {
     console.log(element);
+    let savedElements;
+    const hash = this.elementHash(element);
+    if (!savedElem.has(hash)) {
+      savedElem.add(hash);
+      savedElements = [...this.state.savedElements, element];
+    } else {
+      savedElem.delete(hash);
+      savedElements = this.state.savedElements.filter(e => this.elementHash(e) !== hash);
+    }
+    this.setState({savedElements});
+    console.log(savedElements)
+  }
+
+  elementHash(ele) {
+    return ele['earning'] + ele['available'] + ele['seller_place'] + ele['buyer_place'] + ele['volume'] + ele['requested'];
   }
 
   render() {
@@ -223,9 +239,9 @@ class App extends Component {
             <Modal
               isOpen={this.state.showSavedElemModal}
               onRequestClose={() => this.setState({showSavedElemModal: false})}
-              style={{...customStyles.content, width: '100vw', height: '100vh'}}>
+              style={{...customStyles.content, width: '100vw', height: '100vh', inset: '0px'}}>
               <h3>Saved elements</h3>
-              <table>
+              <table className="subtable">
                 <thead>
                 <tr>
                   <th>Name</th>
@@ -277,7 +293,7 @@ class App extends Component {
 
             <tbody>
             {this.state.opportunities.map((op, index) => (
-              <tr className="mainItems" key={index} onDoubleClick={() => this.saveElement(op)}>
+              <tr className={savedElem.has(this.elementHash(op)) ? 'selected' : 'mainItems'} key={index} onDoubleClick={() => this.saveElement(op)}>
                 <th>{op.name} {op.iconId &&
                 <img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`} alt={op.name}/>}</th>
                 <th>{op.earning} ISK</th>
