@@ -80,6 +80,17 @@ module.exports = {
     });
   },
 
+  async getAllStationsByRegionId(regionId) {
+    return new Promise((resolve, reject) => {
+      database.all('SELECT s.* FROM station AS s INNER JOIN system AS sy ON sy.id = s.system_id INNER JOIN constellation AS c ON c.id = sy.constellation_id WHERE c.region_id = ?;', [regionId], (err, rows) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(rows);
+      })
+    });
+  },
+
   async saveValue(key, value) {
     return new Promise((resolve, reject) => {
       const data = typeof value === "object" ? JSON.stringify(value) : value;

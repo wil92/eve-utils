@@ -5,6 +5,7 @@
     height: 100vh;
     background-color: rgba(40, 44, 52, 0.88);
     padding: 30px;
+    z-index: 1000000;
 }
 
 .LoadingIcon {

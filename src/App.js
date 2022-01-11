@@ -45,7 +45,11 @@ class App extends Component {
       block: false,
       regions: [],
       selectedRegions: [-1],
-      savedElements: []
+      savedElements: [],
+      fixedStation: false,
+      fixedRegionValue: null,
+      fixedStationValue: null,
+      stations: []
     };
   }
 
@@ -106,7 +110,7 @@ class App extends Component {
     if (pages[0] !== 1) {
       pages.unshift(1);
     }
-    if (pages[pages.length - 1] !== total) {
+    if (pages[pages.length - 1] !== total && total > 0) {
       pages.push(total);
     }
     return pages;
@@ -127,7 +131,12 @@ class App extends Component {
   calculateOrders() {
     this.setState({block: true});
     const regions = this.state.selectedRegions.some(v => (v === '-1' || v === -1)) ? [-1] : this.state.selectedRegions;
-    sendMessage({type: 'calculate-market', regions});
+    let fixedStation = null;
+    if (this.state.fixedStation) {
+      fixedStation = this.state.fixedStationValue;
+    }
+    console.log(fixedStation);
+    sendMessage({type: 'calculate-market', regions, fixedStation});
   }
 
   changePage(page) {
@@ -182,6 +191,12 @@ class App extends Component {
     return ele['earning'] + ele['available'] + ele['seller_place'] + ele['buyer_place'] + ele['volume'] + ele['requested'];
   }
 
+  async changeFixedRegion(evt) {
+    this.setState({fixedRegionValue: evt.target.value, block: true});
+    const data = await sendMessageAndWaitResponse({type: 'get-stations-by-region', regionId: evt.target.value});
+    this.setState({block: false, stations: data.stations});
+  }
+
   render() {
     return (
       <div className="App">
@@ -207,7 +222,7 @@ class App extends Component {
               <h3>Filter options</h3>
 
               <div style={{display: 'flex', flexDirection: 'column'}}>
-                <label htmlFor="moneyLimit" style={{fontSize: '14px'}}>money limit</label>
+                <label htmlFor="moneyLimit" style={{fontSize: '14px'}}>max sell cost</label>
                 <input style={{maxWidth: '100%'}} type="text"
                        id="moneyLimit"
                        placeholder="money limit"
@@ -222,15 +237,38 @@ class App extends Component {
             <Modal
               isOpen={this.state.showRegionsModal}
               onRequestClose={() => this.setState({showRegionsModal: false})}
-              style={customStyles}>
+              style={{...customStyles.content, width: '400px'}}>
               <h3>Select regions</h3>
-              <select name="region" id="region" multiple
-                      value={this.state.selectedRegions}
-                      onChange={this.handleRegionChange}>
-                {this.state.regions.map((r, index) => (
-                  <option value={r.id} key={index}>{r.name}</option>
-                ))}
-              </select>
+              <div style={{display: 'flex', flexDirection: 'row'}}>
+                <select multiple
+                        style={{width: '50%', minHeight: '300px'}}
+                        value={this.state.selectedRegions}
+                        onChange={this.handleRegionChange}>
+                  {this.state.regions.map((r, index) => (
+                    <option value={r.id} key={index}>{r.name}</option>
+                  ))}
+                </select>
+                <div style={{width: '50%', display: 'flex', flexDirection: 'column'}}>
+                  <div style={{display: 'flex', flexDirection: 'row'}}>
+                    <input type="checkbox" id="enable"
+                           checked={this.state.fixedStation}
+                           onChange={(evt) => this.setState({fixedStation: evt.target.checked})}/>
+                    <label htmlFor="enable">enable fixed station</label>
+                  </div>
+                  {this.state.fixedStation && <select value={this.state.fixedRegionValue}
+                                                      onChange={(evt) => this.changeFixedRegion(evt)}>
+                    {this.state.regions.map((r, index) => (
+                      <option value={r.id} key={index}>{r.name}</option>
+                    ))}
+                  </select>}
+                  {this.state.fixedStation && <select value={this.state.fixedStationValue}
+                                                      onChange={(evt) => this.setState({fixedStationValue: evt.target.value})}>
+                    {this.state.stations.map((r, index) => (
+                      <option value={r.id} key={index}>{r.name}</option>
+                    ))}
+                  </select>}
+                </div>
+              </div>
               <button style={{marginTop: '10px'}} onClick={() => this.calculateOrders()}>calculate opportunities
               </button>
             </Modal>
@@ -260,7 +298,8 @@ class App extends Component {
                 {this.state.savedElements.map((op, index) => (
                   <tr className="savedItems" key={index} onDoubleClick={() => this.saveElement(op)}>
                     <th>{op.name} {op.iconId &&
-                    <img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`} alt={op.name}/>}</th>
+                    <img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}
+                         alt={op.name}/>}</th>
                     <th>{op.earning} ISK</th>
                     <th>{op.available}</th>
                     <th>{op.requested}</th>
@@ -293,7 +332,8 @@ class App extends Component {
 
             <tbody>
             {this.state.opportunities.map((op, index) => (
-              <tr className={savedElem.has(this.elementHash(op)) ? 'selected' : 'mainItems'} key={index} onDoubleClick={() => this.saveElement(op)}>
+              <tr className={savedElem.has(this.elementHash(op)) ? 'selected' : 'mainItems'} key={index}
+                  onDoubleClick={() => this.saveElement(op)}>
                 <th>{op.name} {op.iconId &&
                 <img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`} alt={op.name}/>}</th>
                 <th>{op.earning} ISK</th>
@@ -311,7 +351,8 @@ class App extends Component {
 
           <div>
             {this.state.pages.map((p, index) => (
-              <button className={p === this.state.pagination.page && 'currentPage'} key={index} onClick={() => this.changePage(p)}>
+              <button className={p === this.state.pagination.page ? 'currentPage' : undefined} key={index}
+                      onClick={() => this.changePage(p)}>
                 {p}
               </button>
             ))}

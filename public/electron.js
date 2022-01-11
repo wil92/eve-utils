@@ -96,8 +96,12 @@ ipcMain.on('sync-orders-data', async () => {
 });
 
 ipcMain.on('calculate-market', async (event, data) => {
-  logsService.log('Start market calculation' + JSON.stringify(data));
-  await ordersService.calculateBestOffers(data.regions);
+  logsService.log('Start market calculation');
+  let fixedStation;
+  if (data.fixedStation) {
+    fixedStation = +data.fixedStation;
+  }
+  await ordersService.calculateBestOffers(data.regions, fixedStation);
   await sendTableResult({page: 1});
 });
 
@@ -110,8 +114,14 @@ ipcMain.on('get-regions', async (event, data) => {
   window.webContents.send('in-message', {type: 'get-regions-response', regions, id: data.id});
 });
 
+ipcMain.on('get-stations-by-region', async (event, data) => {
+  const stations = await dataService.getAllStationsByRegionId(data.regionId);
+  window.webContents.send('in-message', {type: 'get-stations-by-region-response', stations, id: data.id});
+});
+
 async function sendTableResult(data) {
-  const result = await dataService.getMarketOpportunities(data.page || 0, 20, data.moneyLimit);
+  const page = data.page ? data.page - 1 : 0;
+  const result = await dataService.getMarketOpportunities(page, 20, data.moneyLimit);
   const count = await dataService.getMarketOpportunitiesCount(data.moneyLimit);
   window.webContents.send('in-message', {
     type: 'table-data-response',
