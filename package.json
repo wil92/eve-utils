@@ -71,15 +71,12 @@
       "!**/node_modules/.bin"
     ],
     "linux": {
-      "category": "Network",
-      "target": [
-        "AppImage",
-        "deb"
-      ]
+      "category": "Game",
+      "target": "deb"
     },
     "win": {
       "target": "portable",
-      "icon": "build/pngegg.ico"
+      "icon": "build/pngegg.png"
     }
   }
 }
