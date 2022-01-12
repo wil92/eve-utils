@@ -41,6 +41,32 @@ module.exports = {
     }
   },
 
+  async removeOpportunity(opportunityId) {
+    const opportunity = await this.getOpportunity(opportunityId);
+    return new Promise((resolve, reject) => {
+      database.serialize(() => {
+        database.run('DELETE FROM market_opportunity WHERE id=?;', [opportunityId]);
+        database.run('DELETE FROM market_order WHERE id=? OR id=?;', [opportunity['buyer_id'], opportunity['seller_id']], (err) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve();
+        });
+      });
+    });
+  },
+
+  async getOpportunity(opportunityId) {
+    return new Promise((resolve, reject) => {
+      database.get('SELECT * FROM market_opportunity WHERE id=?', [opportunityId], (err, row) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(row);
+      });
+    });
+  },
+
   async loadNumValue(key) {
     const res = await this.loadValue(key);
     return res ? +res : null;
@@ -112,7 +138,7 @@ module.exports = {
         where += ` OR c.region_id = ${regions[i]}`;
       }
 
-      sql = `SELECT * FROM market_order AS mo INNER JOIN system AS s ON s.id = mo.system_id INNER JOIN constellation AS c ON c.id = s.constellation_id WHERE ${where};`;
+      sql = `SELECT mo.* FROM market_order AS mo INNER JOIN system AS s ON s.id = mo.system_id INNER JOIN constellation AS c ON c.id = s.constellation_id WHERE ${where};`;
     }
     console.log(sql);
     database.serialize(() => {
@@ -130,7 +156,7 @@ module.exports = {
       where = `WHERE sell < ${moneyLimit}`;
     }
     return new Promise((resolve, reject) => {
-      const sql = `SELECT *, (SELECT s.name FROM station AS s WHERE mo.buyer_id = s.id) buyer_place, (SELECT s2.name FROM station AS s2 WHERE mo.seller_id = s2.id) seller_place FROM market_opportunity AS mo ${where} LIMIT ? OFFSET ?;`
+      const sql = `SELECT *, (SELECT s.name FROM station AS s INNER JOIN market_order AS o ON s.id = o.location_id WHERE mo.buyer_id = o.id) buyer_place, (SELECT s2.name FROM station AS s2 INNER JOIN market_order AS o2 ON s2.id = o2.location_id WHERE mo.seller_id = o2.id) seller_place FROM market_opportunity AS mo ${where} LIMIT ? OFFSET ?;`
       database.all(sql, [pageSize, page * pageSize], (err, rows) => {
         if (err) {
           return reject(err);

@@ -50,6 +50,7 @@ async function createAuthWindow() {
     window.webContents.openDevTools({mode: 'right'});
   }
 
+  window.setMenu(null);
 
   const auth = await dataService.loadObjValue('auth');
   if (!auth) {
@@ -86,6 +87,11 @@ ipcMain.on('sync-all-data', async (event, data) => {
   const authData = await dataService.loadObjValue('auth');
   await syncDataService.syncAllData(authData['access_token']);
   logsService.unblock();
+});
+
+ipcMain.on('remove-opportunity', async (event, data) => {
+  await dataService.removeOpportunity(data['opportunityId']);
+  window.webContents.send('in-message', {type: 'remove-opportunity-response', id: data.id});
 });
 
 ipcMain.on('sync-orders-data', async () => {

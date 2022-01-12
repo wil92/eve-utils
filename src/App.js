@@ -41,7 +41,7 @@ class App extends Component {
       opportunities: [],
       pagination: {
         total: 0,
-        page: 0
+        page: 1
       },
       pages: [],
       moneyLimit: null,
@@ -77,7 +77,7 @@ class App extends Component {
       this.setState({block: false});
     });
 
-    sendMessage({type: 'table-data', page: 1});
+    sendMessage({type: 'table-data', page: this.state.pagination.page});
     this.setState({block: true});
     this.getRegions();
   }
@@ -140,6 +140,12 @@ class App extends Component {
     }
     sendMessage({type: 'calculate-market', regions, fixedStation});
     this.setState({showRegionsModal: false});
+  }
+
+  async deleteOpportunity(opportunityId) {
+    this.setState({block: true});
+    await sendMessageAndWaitResponse({type: 'remove-opportunity', opportunityId});
+    sendMessage({type: 'table-data', page: this.state.pagination.page, moneyLimit: this.getMoneyLimit()});
   }
 
   changePage(page) {
@@ -290,12 +296,12 @@ class App extends Component {
                 <thead>
                 <tr>
                   <th>Name</th>
+                  <th>Volume</th>
                   <th>Earning</th>
                   <th>Units available</th>
                   <th>Units requested</th>
-                  <th>Buy cost</th>
                   <th>Sell cost</th>
-                  <th>Volume</th>
+                  <th>Buy cost</th>
                   <th>Seller station</th>
                   <th>Buyer station</th>
                   <th>actions</th>
@@ -330,12 +336,12 @@ class App extends Component {
             <thead>
             <tr>
               <th>Name</th>
+              <th>Volume</th>
               <th>Earning</th>
               <th>Units available</th>
               <th>Units requested</th>
-              <th>Buy cost</th>
               <th>Sell cost</th>
-              <th>Volume</th>
+              <th>Buy cost</th>
               <th>Seller station</th>
               <th>Buyer station</th>
               <th>actions</th>
@@ -357,6 +363,7 @@ class App extends Component {
                 <th onClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
                 <th>
                   <button onClick={() => this.saveElement(op)}>{savedElem.has(this.elementHash(op)) ? '-' : '+'}</button>
+                  <button onClick={() => this.deleteOpportunity(op.id)}>x</button>
                 </th>
               </tr>
             ))}

@@ -3,7 +3,7 @@ const logsService = require("./LogsService");
 
 module.exports = {
   async calculateBestOffers(regions, fixedStation) {
-    const bestOffers = await new Promise((resolve, reject) => {
+    const bestOffers = await new Promise((resolve) => {
       const maxBuy = new Map();
       const minSell = new Map();
       const typesSet = new Set();
@@ -67,9 +67,11 @@ module.exports = {
       buy: bo.max.price,
       sell: bo.min.price,
       type_id: bo.type,
-      buyer_id: bo.max['location_id'],
-      seller_id: bo.min['location_id']
+      buyer_id: bo.max.id,
+      seller_id: bo.min.id
     })));
+
+    logsService.log("Finish opportunities calculation");
     return bestOffers;
   }
 };
