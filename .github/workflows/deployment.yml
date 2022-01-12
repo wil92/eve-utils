@@ -19,7 +19,8 @@ jobs:
         with:
           fetch-depth: 2
       - id: validation
-        run: if grep -q "server.js" <<< "$(git diff --name-only HEAD HEAD~1)"; then echo "::set-output name=exist::true"; else echo "::set-output name=exist::false"; fi;
+#        run: if grep -q "server.js" <<< "$(git diff --name-only HEAD HEAD~1)"; then echo "::set-output name=exist::true"; else echo "::set-output name=exist::false"; fi;
+        run: echo "::set-output name=exist::true";
 
   deploy_auth_service:
 
