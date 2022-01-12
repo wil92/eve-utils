@@ -32,7 +32,7 @@ app.on('window-all-closed', () => {
 });
 
 async function createAuthWindow() {
-  await dataService.initDatabase();
+  await dataService.initDatabase(app.getPath('appData'));
 
   window = new BrowserWindow({
     width: 1350,

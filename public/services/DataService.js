@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require("path");
 
 const sqlite = require('sqlite3').verbose();
 
@@ -8,9 +9,12 @@ let database;
 
 module.exports = {
 
-  async initDatabase() {
-    const isNewDB = !fs.existsSync(databaseName);
-    database = new sqlite.Database(databaseName);
+  async initDatabase(savePath) {
+    const dbPath = path.join(savePath, databaseName);
+    console.log(dbPath);
+
+    const isNewDB = !fs.existsSync(dbPath);
+    database = new sqlite.Database(dbPath);
 
     if (isNewDB) {
       const initialScriptArray = require('./createDB');
