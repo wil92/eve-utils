@@ -1,9 +1,12 @@
 import {Component} from "react";
 import Modal from 'react-modal';
+import {Img} from "react-image";
+import {NotificationContainer, NotificationManager} from "react-notifications";
 import axios from "axios";
 import {filter} from "rxjs";
 
 import './App.css';
+import 'react-notifications/lib/notifications.css';
 import {jwtInterceptor} from "./services/AxiosInterceptor";
 import {observable, sendMessage, sendMessageAndWaitResponse} from "./services/MessageHandler";
 import Loading from "./Loading/Loading";
@@ -173,7 +176,6 @@ class App extends Component {
   }
 
   saveElement(element) {
-    console.log(element);
     let savedElements;
     const hash = this.elementHash(element);
     if (!savedElem.has(hash)) {
@@ -184,7 +186,6 @@ class App extends Component {
       savedElements = this.state.savedElements.filter(e => this.elementHash(e) !== hash);
     }
     this.setState({savedElements});
-    console.log(savedElements)
   }
 
   elementHash(ele) {
@@ -195,6 +196,11 @@ class App extends Component {
     this.setState({fixedRegionValue: evt.target.value, block: true});
     const data = await sendMessageAndWaitResponse({type: 'get-stations-by-region', regionId: evt.target.value});
     this.setState({block: false, stations: data.stations});
+  }
+
+  async copyToClipboard(value) {
+    await navigator.clipboard.writeText(value);
+    NotificationManager.success(value, 'copy to clipboard', 1000);
   }
 
   render() {
@@ -291,23 +297,27 @@ class App extends Component {
                   <th>Volume</th>
                   <th>Seller station</th>
                   <th>Buyer station</th>
+                  <th>actions</th>
                 </tr>
                 </thead>
 
                 <tbody>
                 {this.state.savedElements.map((op, index) => (
                   <tr className="savedItems" key={index} onDoubleClick={() => this.saveElement(op)}>
-                    <th>{op.name} {op.iconId &&
+                    <th onClick={() => this.copyToClipboard(op.name)}>{op.name} {op.iconId &&
                     <img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}
                          alt={op.name}/>}</th>
-                    <th>{op.earning} ISK</th>
-                    <th>{op.available}</th>
-                    <th>{op.requested}</th>
-                    <th>{op.buy} ISK</th>
-                    <th>{op.sell} ISK</th>
-                    <th>{op.volume}m&#179;</th>
-                    <th>{op['seller_place']}</th>
-                    <th>{op['buyer_place']}</th>
+                    <th onClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;</th>
+                    <th onClick={() => this.copyToClipboard(op.earning)}>{op.earning} ISK</th>
+                    <th onClick={() => this.copyToClipboard(op.available)}>{op.available}</th>
+                    <th onClick={() => this.copyToClipboard(op.requested)}>{op.requested}</th>
+                    <th onClick={() => this.copyToClipboard(op.sell)}>{op.sell} ISK</th>
+                    <th onClick={() => this.copyToClipboard(op.buy)}>{op.buy} ISK</th>
+                    <th onClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
+                    <th onClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
+                    <th>
+                      <button onClick={() => this.saveElement(op)}>{savedElem.has(this.elementHash(op)) ? '-' : '+'}</button>
+                    </th>
                   </tr>
                 ))}
                 </tbody>
@@ -327,23 +337,26 @@ class App extends Component {
               <th>Volume</th>
               <th>Seller station</th>
               <th>Buyer station</th>
+              <th>actions</th>
             </tr>
             </thead>
 
             <tbody>
             {this.state.opportunities.map((op, index) => (
-              <tr className={savedElem.has(this.elementHash(op)) ? 'selected' : 'mainItems'} key={index}
-                  onDoubleClick={() => this.saveElement(op)}>
-                <th>{op.name} {op.iconId &&
-                <img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`} alt={op.name}/>}</th>
-                <th>{op.earning} ISK</th>
-                <th>{op.available}</th>
-                <th>{op.requested}</th>
-                <th>{op.buy} ISK</th>
-                <th>{op.sell} ISK</th>
-                <th>{op.volume}m&#179;</th>
-                <th>{op['seller_place']}</th>
-                <th>{op['buyer_place']}</th>
+              <tr className={savedElem.has(this.elementHash(op)) ? 'selected' : 'mainItems'} key={index}>
+                <th onClick={() => this.copyToClipboard(op.name)}>{op.name} {(op.iconId) &&
+                  <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
+                <th onClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;</th>
+                <th onClick={() => this.copyToClipboard(op.earning)}>{op.earning} ISK</th>
+                <th onClick={() => this.copyToClipboard(op.available)}>{op.available}</th>
+                <th onClick={() => this.copyToClipboard(op.requested)}>{op.requested}</th>
+                <th onClick={() => this.copyToClipboard(op.sell)}>{op.sell} ISK</th>
+                <th onClick={() => this.copyToClipboard(op.buy)}>{op.buy} ISK</th>
+                <th onClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
+                <th onClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
+                <th>
+                  <button onClick={() => this.saveElement(op)}>{savedElem.has(this.elementHash(op)) ? '-' : '+'}</button>
+                </th>
               </tr>
             ))}
             </tbody>
@@ -359,6 +372,7 @@ class App extends Component {
           </div>
 
         </header>
+        <NotificationContainer/>
       </div>
     );
   }
