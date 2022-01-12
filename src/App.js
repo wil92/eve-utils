@@ -101,6 +101,16 @@ class App extends Component {
     });
   }
 
+  async getRoute(origin, destination) {
+    return new Promise(resolve => {
+      axios.get(`https://esi.evetech.net/v1/route/${origin}/${destination}/`)
+        .then(res => {
+          resolve(res.data);
+        })
+        .catch(() => resolve([]));
+    });
+  }
+
   calculatePagesInPagination(total, page) {
     const shift = 3;
     const pages = [page];
@@ -182,12 +192,19 @@ class App extends Component {
     this.setState({selectedRegions: value});
   }
 
-  saveElement(element) {
+  async saveElement(element) {
     let savedElements;
     const hash = this.elementHash(element);
     if (!savedElem.has(hash)) {
       savedElem.add(hash);
-      savedElements = [...this.state.savedElements, element];
+      console.log(element)
+      const route = await this.getRoute(element['seller_place_id'], element['buyer_place_id']);
+      const {securityStatus} = await sendMessageAndWaitResponse({type: 'get-security-status', route});
+      savedElements = [...this.state.savedElements, {
+        ...element,
+        jumps: route.length,
+        securityStatus: Math.round(securityStatus * 100) / 100
+      }];
     } else {
       savedElem.delete(hash);
       savedElements = this.state.savedElements.filter(e => this.elementHash(e) !== hash);
@@ -304,6 +321,8 @@ class App extends Component {
                   <th>Buy cost</th>
                   <th>Seller station</th>
                   <th>Buyer station</th>
+                  <th>Jumps</th>
+                  <th>Security</th>
                   <th>actions</th>
                 </tr>
                 </thead>
@@ -312,8 +331,7 @@ class App extends Component {
                 {this.state.savedElements.map((op, index) => (
                   <tr className="savedItems" key={index} onDoubleClick={() => this.saveElement(op)}>
                     <th onClick={() => this.copyToClipboard(op.name)}>{op.name} {op.iconId &&
-                    <img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}
-                         alt={op.name}/>}</th>
+                    <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
                     <th onClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;</th>
                     <th onClick={() => this.copyToClipboard(op.earning)}>{op.earning} ISK</th>
                     <th onClick={() => this.copyToClipboard(op.available)}>{op.available}</th>
@@ -322,8 +340,11 @@ class App extends Component {
                     <th onClick={() => this.copyToClipboard(op.buy)}>{op.buy} ISK</th>
                     <th onClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
                     <th onClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
+                    <th onClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</th>
+                    <th onClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</th>
                     <th>
-                      <button onClick={() => this.saveElement(op)}>{savedElem.has(this.elementHash(op)) ? '-' : '+'}</button>
+                      <button
+                        onClick={() => this.saveElement(op)}>{savedElem.has(this.elementHash(op)) ? '-' : '+'}</button>
                     </th>
                   </tr>
                 ))}
@@ -352,7 +373,7 @@ class App extends Component {
             {this.state.opportunities.map((op, index) => (
               <tr className={savedElem.has(this.elementHash(op)) ? 'selected' : 'mainItems'} key={index}>
                 <th onClick={() => this.copyToClipboard(op.name)}>{op.name} {(op.iconId) &&
-                  <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
+                <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
                 <th onClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;</th>
                 <th onClick={() => this.copyToClipboard(op.earning)}>{op.earning} ISK</th>
                 <th onClick={() => this.copyToClipboard(op.available)}>{op.available}</th>
@@ -362,7 +383,8 @@ class App extends Component {
                 <th onClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
                 <th onClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
                 <th>
-                  <button onClick={() => this.saveElement(op)}>{savedElem.has(this.elementHash(op)) ? '-' : '+'}</button>
+                  <button
+                    onClick={() => this.saveElement(op)}>{savedElem.has(this.elementHash(op)) ? '-' : '+'}</button>
                   <button onClick={() => this.deleteOpportunity(op.id)}>x</button>
                 </th>
               </tr>

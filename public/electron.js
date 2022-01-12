@@ -120,6 +120,11 @@ ipcMain.on('get-regions', async (event, data) => {
   window.webContents.send('in-message', {type: 'get-regions-response', regions, id: data.id});
 });
 
+ipcMain.on('get-security-status', async (event, data) => {
+  const securityStatus = await dataService.getSecurityStatus(data.route);
+  window.webContents.send('in-message', {type: 'get-security-status-response', securityStatus, id: data.id});
+});
+
 ipcMain.on('get-stations-by-region', async (event, data) => {
   const stations = await dataService.getAllStationsByRegionId(data.regionId);
   window.webContents.send('in-message', {type: 'get-stations-by-region-response', stations, id: data.id});

@@ -106,6 +106,19 @@ module.exports = {
     });
   },
 
+  async getSecurityStatus(route) {
+    const ids = route.reduce((p, v, i) => p + (i > 0 ? ' OR ' : '') + `s.id = ${v}`, '');
+    console.log(ids)
+    let solution = -1;
+    return new Promise((resolve, reject) => {
+      database.each(`SELECT security_status
+                     FROM system s
+                     WHERE ${ids};`, (err, row) => {
+        solution = Math.min(row['security_status']);
+      }, () => resolve(solution));
+    });
+  },
+
   async getAllStationsByRegionId(regionId) {
     return new Promise((resolve, reject) => {
       database.all('SELECT s.* FROM station AS s INNER JOIN system AS sy ON sy.id = s.system_id INNER JOIN constellation AS c ON c.id = sy.constellation_id WHERE c.region_id = ?;', [regionId], (err, rows) => {
@@ -138,7 +151,11 @@ module.exports = {
         where += ` OR c.region_id = ${regions[i]}`;
       }
 
-      sql = `SELECT mo.* FROM market_order AS mo INNER JOIN system AS s ON s.id = mo.system_id INNER JOIN constellation AS c ON c.id = s.constellation_id WHERE ${where};`;
+      sql = `SELECT mo.*
+             FROM market_order AS mo
+                      INNER JOIN system AS s ON s.id = mo.system_id
+                      INNER JOIN constellation AS c ON c.id = s.constellation_id
+             WHERE ${where};`;
     }
     console.log(sql);
     database.serialize(() => {
@@ -156,7 +173,25 @@ module.exports = {
       where = `WHERE sell < ${moneyLimit}`;
     }
     return new Promise((resolve, reject) => {
-      const sql = `SELECT *, (SELECT s.name FROM station AS s INNER JOIN market_order AS o ON s.id = o.location_id WHERE mo.buyer_id = o.id) buyer_place, (SELECT s2.name FROM station AS s2 INNER JOIN market_order AS o2 ON s2.id = o2.location_id WHERE mo.seller_id = o2.id) seller_place FROM market_opportunity AS mo ${where} LIMIT ? OFFSET ?;`
+      const sql = `SELECT *,
+                          (SELECT s.name
+                           FROM station AS s
+                                    INNER JOIN market_order AS o ON s.id = o.location_id
+                           WHERE mo.buyer_id = o.id)   buyer_place,
+                          (SELECT s.system_id
+                           FROM station AS s
+                                    INNER JOIN market_order AS o ON s.id = o.location_id
+                           WHERE mo.buyer_id = o.id)   buyer_place_id,
+                          (SELECT s2.name
+                           FROM station AS s2
+                                    INNER JOIN market_order AS o2 ON s2.id = o2.location_id
+                           WHERE mo.seller_id = o2.id) seller_place,
+                          (SELECT s2.system_id
+                           FROM station AS s2
+                                    INNER JOIN market_order AS o2 ON s2.id = o2.location_id
+                           WHERE mo.seller_id = o2.id) seller_place_id
+                   FROM market_opportunity AS mo ${where} LIMIT ?
+                   OFFSET ?;`
       database.all(sql, [pageSize, page * pageSize], (err, rows) => {
         if (err) {
           return reject(err);
@@ -172,7 +207,8 @@ module.exports = {
       where = `WHERE sell < ${moneyLimit}`;
     }
     return new Promise((resolve, reject) => {
-      database.all(`SELECT count(*) as total FROM market_opportunity ${where};`, [], (err, rows) => {
+      database.all(`SELECT count(*) as total
+                    FROM market_opportunity ${where};`, [], (err, rows) => {
         if (err) {
           return reject(err);
         }
