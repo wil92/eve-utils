@@ -43,7 +43,7 @@ module.exports = {
           if (max && min) {
             result.push({
               type,
-              earning: max.price - min.price,
+              earning: (max.price - min.price) * Math.min(max['volume_remain'], min['volume_remain']),
               min,
               max
             });
