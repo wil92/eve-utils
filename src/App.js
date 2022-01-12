@@ -66,9 +66,7 @@ class App extends Component {
         opportunities[i]['description'] = type['description'];
         opportunities[i]['iconId'] = type['icon_id'];
         opportunities[i].earning = Math.round(opportunities[i].earning * 100) / 100;
-        opportunities[i].earningUnit = Math.round((opportunities[i].buy - opportunities[i].sell) * 100) / 100;
-        const taxRate = 11;
-        opportunities[i].afterTax = Math.round((opportunities[i].earning * (100 - taxRate) / 100) * 100) / 100;
+        opportunities[i].investment = Math.round(opportunities[i].sell * Math.min(opportunities[i].available, opportunities[i].requested) * 100) / 100;
       }
       this.setState({
         opportunities,
@@ -321,8 +319,8 @@ class App extends Component {
                 <tr>
                   <th>Name</th>
                   <th>Volume</th>
-                  <th>Profit/After Tax</th>
-                  <th>Profit/u</th>
+                  <th>Profit</th>
+                  <th>Investment</th>
                   <th>available/requested</th>
                   <th>Sell cost</th>
                   <th>Buy cost</th>
@@ -340,16 +338,23 @@ class App extends Component {
                     <th onDoubleClick={() => this.copyToClipboard(op.name)}>{op.name} {op.iconId &&
                     <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
                     <th onDoubleClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;</th>
-                    <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.afterTax)}>{op.earning} ISK/&asymp;{op.afterTax} ISK</th>
-                    <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.earningUnit)}>{op.earningUnit} ISK</th>
-                    <th onDoubleClick={() => this.copyToClipboard(Math.min(op.requested, op.available))}>{op.available}/{op.requested}</th>
+                    <th className="thinline"
+                        onDoubleClick={() => this.copyToClipboard(op.earning)}>&asymp; {op.earning} ISK
+                    </th>
+                    <th className="thinline"
+                        onDoubleClick={() => this.copyToClipboard(op.investment)}>{op.investment} ISK
+                    </th>
+                    <th
+                      onDoubleClick={() => this.copyToClipboard(Math.min(op.requested, op.available))}>{op.available}/{op.requested}</th>
                     <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.sell)}>{op.sell} ISK</th>
                     <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.buy)}>{op.buy} ISK</th>
                     <th onDoubleClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
                     <th onDoubleClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
                     <th onDoubleClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</th>
                     <th onDoubleClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</th>
-                    <th><button onClick={() => this.saveElement(op)} title="unsave">-</button></th>
+                    <th>
+                      <button onClick={() => this.saveElement(op)} title="unsave">-</button>
+                    </th>
                   </tr>
                 ))}
                 </tbody>
@@ -362,8 +367,8 @@ class App extends Component {
             <tr>
               <th>Name</th>
               <th>Volume</th>
-              <th>Profit/After Tax</th>
-              <th>Profit/u</th>
+              <th>Profit</th>
+              <th>Investment</th>
               <th>available/requested</th>
               <th>Sell cost</th>
               <th>Buy cost</th>
@@ -379,9 +384,13 @@ class App extends Component {
                 <th onDoubleClick={() => this.copyToClipboard(op.name)}>{op.name} {(op.iconId) &&
                 <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
                 <th onDoubleClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;</th>
-                <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.afterTax)}>{op.earning} ISK/&asymp;{op.afterTax} ISK</th>
-                <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.earningUnit)}>{op.earningUnit} ISK</th>
-                <th onDoubleClick={() => this.copyToClipboard(Math.min(op.requested, op.available))}>{op.available}/{op.requested}</th>
+                <th className="thinline"
+                    onDoubleClick={() => this.copyToClipboard(op.earning)}>&asymp; {op.earning} ISK
+                </th>
+                <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.investment)}>{op.investment} ISK
+                </th>
+                <th
+                  onDoubleClick={() => this.copyToClipboard(Math.min(op.requested, op.available))}>{op.available}/{op.requested}</th>
                 <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.sell)}>{op.sell} ISK</th>
                 <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.buy)}>{op.buy} ISK</th>
                 <th onDoubleClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>

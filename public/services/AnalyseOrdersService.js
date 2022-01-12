@@ -41,9 +41,10 @@ module.exports = {
           const max = maxBuy.get(type);
           const min = minSell.get(type);
           if (max && min) {
+            // toDo 13.01.22, guille, the tax should be moved to the database
             result.push({
               type,
-              earning: (max.price - min.price) * Math.min(max['volume_remain'], min['volume_remain']),
+              earning: this.calculateEarning(min.price, max.price, Math.min(max['volume_remain'], min['volume_remain']), 11),
               min,
               max
             });
@@ -73,5 +74,11 @@ module.exports = {
 
     logsService.log("Finish opportunities calculation");
     return bestOffers;
+  },
+
+  calculateEarning(sellCost, buyCost, items, taxPercent) {
+    const investment = sellCost * items;
+    const sell = buyCost * items;
+    return sell * (100 - taxPercent) / 100 - investment;
   }
 };
