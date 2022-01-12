@@ -108,7 +108,6 @@ module.exports = {
 
   async getSecurityStatus(route) {
     const ids = route.reduce((p, v, i) => p + (i > 0 ? ' OR ' : '') + `s.id = ${v}`, '');
-    console.log(ids)
     let solution = -1;
     return new Promise((resolve, reject) => {
       database.each(`SELECT security_status

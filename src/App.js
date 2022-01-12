@@ -65,6 +65,8 @@ class App extends Component {
         opportunities[i]['name'] = type['name'];
         opportunities[i]['description'] = type['description'];
         opportunities[i]['iconId'] = type['icon_id'];
+        opportunities[i].earning = Math.round(opportunities[i].earning * 100) / 100;
+        opportunities[i].earningUnit = Math.round((opportunities[i].buy - opportunities[i].sell) * 100) / 100;
       }
       this.setState({
         opportunities,
@@ -196,8 +198,8 @@ class App extends Component {
     let savedElements;
     const hash = this.elementHash(element);
     if (!savedElem.has(hash)) {
+      this.setState({block: true});
       savedElem.add(hash);
-      console.log(element)
       const route = await this.getRoute(element['seller_place_id'], element['buyer_place_id']);
       const {securityStatus} = await sendMessageAndWaitResponse({type: 'get-security-status', route});
       savedElements = [...this.state.savedElements, {
@@ -205,9 +207,12 @@ class App extends Component {
         jumps: route.length,
         securityStatus: Math.round(securityStatus * 100) / 100
       }];
+      this.setState({block: false});
+      NotificationManager.success(element.name, 'Opportunity saved', 3000);
     } else {
       savedElem.delete(hash);
       savedElements = this.state.savedElements.filter(e => this.elementHash(e) !== hash);
+      NotificationManager.success(element.name, 'Remove from saved', 3000);
     }
     this.setState({savedElements});
   }
@@ -314,9 +319,9 @@ class App extends Component {
                 <tr>
                   <th>Name</th>
                   <th>Volume</th>
-                  <th>Earning</th>
-                  <th>Units available</th>
-                  <th>Units requested</th>
+                  <th>Profit</th>
+                  <th>Profit/u</th>
+                  <th>available/requested</th>
                   <th>Sell cost</th>
                   <th>Buy cost</th>
                   <th>Seller station</th>
@@ -333,19 +338,16 @@ class App extends Component {
                     <th onClick={() => this.copyToClipboard(op.name)}>{op.name} {op.iconId &&
                     <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
                     <th onClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;</th>
-                    <th onClick={() => this.copyToClipboard(op.earning)}>{op.earning} ISK</th>
-                    <th onClick={() => this.copyToClipboard(op.available)}>{op.available}</th>
-                    <th onClick={() => this.copyToClipboard(op.requested)}>{op.requested}</th>
-                    <th onClick={() => this.copyToClipboard(op.sell)}>{op.sell} ISK</th>
-                    <th onClick={() => this.copyToClipboard(op.buy)}>{op.buy} ISK</th>
+                    <th className="thinline" onClick={() => this.copyToClipboard(op.earning)}>{op.earning} ISK</th>
+                    <th className="thinline" onClick={() => this.copyToClipboard(op.earningUnit)}>{op.earningUnit} ISK</th>
+                    <th onClick={() => this.copyToClipboard(Math.min(op.requested, op.available))}>{op.available}/{op.requested}</th>
+                    <th className="thinline" onClick={() => this.copyToClipboard(op.sell)}>{op.sell} ISK</th>
+                    <th className="thinline" onClick={() => this.copyToClipboard(op.buy)}>{op.buy} ISK</th>
                     <th onClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
                     <th onClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
                     <th onClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</th>
                     <th onClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</th>
-                    <th>
-                      <button
-                        onClick={() => this.saveElement(op)}>{savedElem.has(this.elementHash(op)) ? '-' : '+'}</button>
-                    </th>
+                    <th><button onClick={() => this.saveElement(op)} title="unsave">-</button></th>
                   </tr>
                 ))}
                 </tbody>
@@ -358,9 +360,9 @@ class App extends Component {
             <tr>
               <th>Name</th>
               <th>Volume</th>
-              <th>Earning</th>
-              <th>Units available</th>
-              <th>Units requested</th>
+              <th>Profit</th>
+              <th>Profit/u</th>
+              <th>available/requested</th>
               <th>Sell cost</th>
               <th>Buy cost</th>
               <th>Seller station</th>
@@ -375,17 +377,19 @@ class App extends Component {
                 <th onClick={() => this.copyToClipboard(op.name)}>{op.name} {(op.iconId) &&
                 <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
                 <th onClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;</th>
-                <th onClick={() => this.copyToClipboard(op.earning)}>{op.earning} ISK</th>
-                <th onClick={() => this.copyToClipboard(op.available)}>{op.available}</th>
-                <th onClick={() => this.copyToClipboard(op.requested)}>{op.requested}</th>
-                <th onClick={() => this.copyToClipboard(op.sell)}>{op.sell} ISK</th>
-                <th onClick={() => this.copyToClipboard(op.buy)}>{op.buy} ISK</th>
+                <th className="thinline" onClick={() => this.copyToClipboard(op.earning)}>{op.earning} ISK</th>
+                <th className="thinline" onClick={() => this.copyToClipboard(op.earningUnit)}>{op.earningUnit} ISK</th>
+                <th onClick={() => this.copyToClipboard(Math.min(op.requested, op.available))}>{op.available}/{op.requested}</th>
+                <th className="thinline" onClick={() => this.copyToClipboard(op.sell)}>{op.sell} ISK</th>
+                <th className="thinline" onClick={() => this.copyToClipboard(op.buy)}>{op.buy} ISK</th>
                 <th onClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
                 <th onClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
-                <th>
-                  <button
-                    onClick={() => this.saveElement(op)}>{savedElem.has(this.elementHash(op)) ? '-' : '+'}</button>
-                  <button onClick={() => this.deleteOpportunity(op.id)}>x</button>
+                <th className="thinline">
+                  <button onClick={() => this.saveElement(op)}
+                          title={savedElem.has(this.elementHash(op)) ? 'unsave' : 'save'}>
+                    {savedElem.has(this.elementHash(op)) ? '-' : '+'}
+                  </button>
+                  <button onClick={() => this.deleteOpportunity(op.id)} title="remove">x</button>
                 </th>
               </tr>
             ))}
