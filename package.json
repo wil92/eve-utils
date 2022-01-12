@@ -74,10 +74,10 @@
     ],
     "linux": {
       "category": "Game",
-      "target": "deb"
+      "target": ["deb", "AppImage"]
     },
     "win": {
-      "target": "nsis",
+      "target": ["nsis", "portable"],
       "icon": "./build/pngegg.png"
     }
   }
