@@ -69,8 +69,8 @@ module.exports = () => {
       logsService.log('SYNC ORDER (start)');
       await dataService.cleanOrders();
       const regions = await dataService.getRegions();
-      for (let i = 0; i < regions.length; i++) {
-        logsService.log(`- SYNC ORDER FROM REGION ${regions[i].id} (start)`);
+      for (let i = 0, p = 100 / regions.length; i < regions.length; i++) {
+        logsService.log(`- SYNC ORDER FROM REGION ${regions[i].id} (start) ${Math.round(i * p * 100) / 100}%`);
         const url = `${config.apiEndpoint}/v1/markets/${regions[i].id}/orders/`;
         const orders = await http.getWithPagination(url, accessToken);
         logsService.log(`-- ${orders.length} orders`);
