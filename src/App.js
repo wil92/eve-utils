@@ -138,8 +138,8 @@ class App extends Component {
     if (this.state.fixedStation) {
       fixedStation = this.state.fixedStationValue;
     }
-    console.log(fixedStation);
     sendMessage({type: 'calculate-market', regions, fixedStation});
+    this.setState({showRegionsModal: false});
   }
 
   changePage(page) {
@@ -153,6 +153,7 @@ class App extends Component {
     if (this.state.moneyLimit) {
       this.setState({block: true});
       sendMessage({type: 'table-data', page: 1, moneyLimit: this.getMoneyLimit()});
+      this.setState({showFilterModal: false});
     }
   }
 
