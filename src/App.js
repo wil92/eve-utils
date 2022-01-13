@@ -85,7 +85,6 @@ class App extends Component {
       this.getRegions();
     });
     observable.pipe(filter(m => m.type === 'load-value-response')).subscribe((data) => {
-      console.log(data)
       if (data.key === 'lastSync' && data.value) {
         this.setState({lastSync: data.value});
       }
@@ -94,7 +93,9 @@ class App extends Component {
     sendMessage({type: 'table-data', page: this.state.pagination.page});
     sendMessage({type: 'load-value', key: 'lastSync'});
     this.setState({block: true});
+
     this.getRegions();
+    this.loadSavedElements();
   }
 
   async getRegions() {
@@ -104,6 +105,13 @@ class App extends Component {
     const currentRegions = new Set();
     regionsIds.forEach(r => currentRegions.add(+r));
     this.setState({regions: [{name: "All regions", id: -1}, ...data.regions], currentRegions});
+  }
+
+  async loadSavedElements() {
+    const value = (await sendMessageAndWaitResponse({type: 'load-value', key: 'savedElements'})).value;
+    const savedElements = value ? JSON.parse(value) : [];
+    savedElements.forEach(e => savedElem.add(this.elementHash(e)));
+    this.setState({savedElements});
   }
 
   async getType(typeId) {
@@ -233,6 +241,7 @@ class App extends Component {
       savedElements = this.state.savedElements.filter(e => this.elementHash(e) !== hash);
       NotificationManager.success(element.name, 'Removed from saved', 3000);
     }
+    sendMessage({type: 'save-value', key: 'savedElements', value: JSON.stringify(savedElements)});
     this.setState({savedElements});
   }
 
@@ -390,7 +399,7 @@ class App extends Component {
                 <tr>
                   <th>Name</th>
                   <th>Volume</th>
-                  <th>Profit</th>
+                  <th title={this.state.savedElements.reduce((p, v) => p + v.earning, 0)}>Profit&#182;</th>
                   <th>Investment</th>
                   <th>available/requested</th>
                   <th>Sell cost</th>

@@ -79,7 +79,6 @@ module.exports = (window) => {
 
       ipcMain.on('get-regions', async (event, data) => {
         const regions = await dataService.getAllRegions();
-        console.log('List of regions requested');
         window.webContents.send('in-message', {type: 'get-regions-response', regions, id: data.id});
       });
 
