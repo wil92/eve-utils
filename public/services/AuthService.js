@@ -1,6 +1,8 @@
 const crypto = require("crypto");
 const rp = require('request-promise');
 
+const dataService = require('./DataService');
+
 module.exports = (config) => {
 
   config = config || {
@@ -23,9 +25,9 @@ module.exports = (config) => {
       return this.getAuthoriseUrl(this.challengePair);
     },
 
-    requestAccessCode(callbackUrl) {
+    async requestAccessCode(callbackUrl) {
 
-      return new Promise((resolve, reject) => {
+      const auth = await new Promise((resolve, reject) => {
 
         if (this.isValidAccessCodeCallBackUrl(callbackUrl)) {
 
@@ -56,10 +58,23 @@ module.exports = (config) => {
           reject('Access code callback url not expected.');
         }
       });
+      await dataService.saveValue('auth', auth);
+      await dataService.saveValue('expire', this.getExpirationDate(auth['expires_in']));
+      return auth;
     },
 
-    refreshToken(refreshToken) {
-      return rp({
+    async checkExpireToken() {
+      const authData = await dataService.loadObjValue('auth');
+      const expire = await dataService.loadNumValue('expire') || 0;
+      if (expire < new Date().getTime() && authData) {
+        await this.refreshToken(authData.refresh_token);
+        return true;
+      }
+      return false;
+    },
+
+    async refreshToken(refreshToken) {
+      const auth = await rp({
         method: 'POST',
         url: this.config.tokenEndpoint,
         headers: {'content-type': 'application/x-www-form-urlencoded'},
@@ -69,9 +84,16 @@ module.exports = (config) => {
           "refresh_token": refreshToken,
           "scope": this.config.scope
         }
-      }).then(res => {
-        return JSON.parse(res);
+      }).then(auth => {
+        return JSON.parse(auth);
       });
+      await dataService.saveValue('auth', auth);
+      await dataService.saveValue('expire', this.getExpirationDate(auth['expires_in']));
+      return auth;
+    },
+
+    getExpirationDate(expiresIn) {
+      return Math.floor(new Date().getTime() + expiresIn * 1000 * 2 / 3);
     },
 
     getUserInfo(access_token) {

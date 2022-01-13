@@ -11,7 +11,7 @@ const url = require("url");
 const logsService = require("./services/LogsService");
 
 const authService = AuthService(config);
-const syncDataService = SyncDataService();
+const syncDataService = SyncDataService(authService);
 
 const isDev = !app.isPackaged;
 let window;
@@ -56,17 +56,12 @@ async function createAuthWindow() {
   if (!auth) {
     await openLoginPage();
   } else {
-    openApp();
+    await openApp();
   }
 }
 
 ipcMain.on('refresh-token', async (evt, data) => {
-  const expire = await dataService.loadNumValue('expire') || 0;
-  if (expire < new Date().getTime()) {
-    await refreshToken(data.id);
-  } else {
-    await updateTokenInUI(data.id);
-  }
+  await refreshToken(data.id);
 });
 
 ipcMain.on('logout', async () => {
@@ -83,9 +78,9 @@ ipcMain.on('load-value', async (event, data) => {
   window.webContents.send('in-message', {type: 'load-value-response', value, id: data.id});
 });
 
-ipcMain.on('sync-all-data', async (event, data) => {
-  const authData = await dataService.loadObjValue('auth');
-  await syncDataService.syncAllData(authData['access_token']);
+ipcMain.on('sync-all-data', async () => {
+  await refreshToken();
+  await syncDataService.syncAllData();
   logsService.unblock();
 });
 
@@ -95,8 +90,7 @@ ipcMain.on('remove-opportunity', async (event, data) => {
 });
 
 ipcMain.on('sync-orders-data', async () => {
-  const authData = await dataService.loadObjValue('auth');
-  await syncDataService.syncAllOrders(authData['access_token']);
+  await syncDataService.syncOrders();
   await sendTableResult({page: 1});
   logsService.unblock();
 });
@@ -143,21 +137,17 @@ async function sendTableResult(data) {
 
 ipcMain.on('user-info', async (event, data) => {
   const authData = await dataService.loadObjValue('auth');
-  const expire = await dataService.loadNumValue('expire') || 0;
-  if (expire < new Date().getTime()) {
-    await refreshToken();
-  }
+  await refreshToken();
   const userInfo = await authService.getUserInfo(authData['access_token']);
   window.webContents.send('in-message', {type: 'user-info-response', userInfo, id: data.id});
 });
 
 async function refreshToken(id = null) {
   try {
-    const authData = await dataService.loadObjValue('auth');
-    const auth = await authService.refreshToken(authData.refresh_token);
-    await dataService.saveValue('auth', auth);
-    await dataService.saveValue('expire', getExpirationDate(auth['expires_in']));
-    await updateTokenInUI(id);
+    await authService.checkExpireToken()
+    if (id) {
+      await updateTokenInUI(id);
+    }
   } catch (e) {
     console.error(e);
     await logout();
@@ -173,20 +163,14 @@ async function logout() {
 async function openLoginPage() {
   await window.loadURL(authService.requestAuthCode());
 
-  window.webContents.on('did-redirect-navigation', (event, newUrl) => {
-    authService.requestAccessCode(newUrl).then(async (auth) => {
-      // save auth information
-      await dataService.saveValue('auth', auth);
-      await dataService.saveValue('expire', getExpirationDate(auth['expires_in']));
-
-      openApp().then(() => {
-        updateTokenInUI();
-      });
-    });
+  window.webContents.on('did-redirect-navigation', async (event, newUrl) => {
+    await authService.requestAccessCode(newUrl);
+    await openApp();
+    await updateTokenInUI();
   });
 }
 
-function openApp() {
+async function openApp() {
   return window.loadURL(
     isDev
       ? 'http://localhost:3000'
@@ -202,8 +186,4 @@ async function updateTokenInUI(id = null) {
   const expire = await dataService.loadNumValue('expire') || 0;
   const auth = await dataService.loadObjValue('auth');
   window.webContents.send('in-message', {type: 'refresh-token-response', auth, expire, id});
-}
-
-function getExpirationDate(expiresIn) {
-  return Math.floor(new Date().getTime() + expiresIn * 1000 * 2 / 3);
 }

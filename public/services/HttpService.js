@@ -14,15 +14,17 @@ module.exports = {
 
   async get(url, token, responseFormat = 1) {
     await this.requestTimeLimitation();
-    return rp({
-      method: 'GET',
-      url: url,
-      headers: {'Authorization': `Bearer ${token}`}
-    }).then(res => {
-      if (responseFormat === this.JSON_RESPONSE) {
-        return JSON.parse(res);
-      }
-      return res;
+    return this.handleServerRejection(async () => {
+      return rp({
+        method: 'GET',
+        url: url,
+        headers: {'Authorization': `Bearer ${token}`}
+      }).then(res => {
+        if (responseFormat === this.JSON_RESPONSE) {
+          return JSON.parse(res);
+        }
+        return res;
+      });
     });
   },
 
@@ -32,18 +34,34 @@ module.exports = {
     do {
       page++;
       await this.requestTimeLimitation();
-      const resValues = await rp({
-        method: 'GET',
-        url: `${url}?page=${page}`,
-        headers: {'Authorization': `Bearer ${token}`},
-        resolveWithFullResponse: true
-      }).then(res => {
-        pages = +res.headers['x-pages'];
-        return JSON.parse(res.body);
+      let resValues = await this.handleServerRejection(async () => {
+        resValues = await rp({
+          method: 'GET',
+          url: `${url}?page=${page}`,
+          headers: {'Authorization': `Bearer ${token}`},
+          resolveWithFullResponse: true
+        }).then(res => {
+          pages = +res.headers['x-pages'];
+          return JSON.parse(res.body);
+        });
       });
       result = [...result, ...resValues];
     } while(page < pages);
     return result;
+  },
+
+  async handleServerRejection(request) {
+    let res = null;
+    do {
+      try {
+        res = await request();
+      } catch (e) {
+        console.error(e);
+        res = null;
+        await sleep(2000);
+      }
+    } while(!res);
+    return res;
   },
 
   async requestTimeLimitation() {
