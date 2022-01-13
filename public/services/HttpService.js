@@ -35,7 +35,7 @@ module.exports = {
       page++;
       await this.requestTimeLimitation();
       let resValues = await this.handleServerRejection(async () => {
-        resValues = await rp({
+        return await rp({
           method: 'GET',
           url: `${url}?page=${page}`,
           headers: {'Authorization': `Bearer ${token}`},
@@ -52,15 +52,18 @@ module.exports = {
 
   async handleServerRejection(request) {
     let res = null;
+    let tries = 0;
+    const maxTries = 2;
     do {
       try {
+        tries++;
         res = await request();
       } catch (e) {
         console.error(e);
         res = null;
         await sleep(2000);
       }
-    } while(!res);
+    } while(!res && tries < maxTries);
     return res;
   },
 

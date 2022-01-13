@@ -47,11 +47,13 @@ table {
 .subtable > thead > tr > th {
     color: #000;
     border: solid .001rem rgba(0, 0, 0, 0.37);
+    font-weight: 400;
 }
 
 .subtable > tbody > tr > th {
     color: #000;
     border: solid .001rem rgba(0, 0, 0, 0.37);
+    font-weight: 400;
 }
 
 th {
