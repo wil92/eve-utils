@@ -2,6 +2,7 @@ const url = require("url");
 const path = require("path");
 
 const {ipcMain, app} = require("electron");
+const moment = require("moment");
 
 const dataService = require("./DataService");
 const logsService = require("./LogsService");
@@ -9,7 +10,6 @@ const ordersService = require("./AnalyseOrdersService");
 const AuthService = require("./AuthService");
 const SyncDataService = require('./SyncDataService');
 const config = require("./config");
-const moment = require("moment");
 
 const authService = AuthService(config);
 const syncDataService = SyncDataService(authService);
@@ -145,7 +145,7 @@ module.exports = (window) => {
         isDev
           ? 'http://localhost:3000'
           : url.format({
-            pathname: path.join(__dirname, 'index.html'),
+            pathname: path.join(__dirname, '../index.html'),
             protocol: 'file',
             slashes: true
           })
