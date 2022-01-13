@@ -22,7 +22,7 @@ jobs:
 
     needs: pre_deploy
 
-    if: needs.pre_deploy.outputs.should_deploy == "true" && github.ref == 'refs/heads/master'
+    if: needs.pre_deploy.steps.vars.outputs.should_deploy == "true" && github.ref == 'refs/heads/master'
 
     runs-on: ubuntu-latest
 
