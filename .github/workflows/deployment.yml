@@ -11,11 +11,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    outputs:
-      should_deploy:
-        description: "Validate if the auth service should be deployed"
-        value: ${{ steps.validation.outputs.should_deploy }}
-
     steps:
       - uses: actions/checkout@v2
         with:
