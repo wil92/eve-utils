@@ -231,7 +231,7 @@ class App extends Component {
     } else {
       savedElem.delete(hash);
       savedElements = this.state.savedElements.filter(e => this.elementHash(e) !== hash);
-      NotificationManager.success(element.name, 'Remove from saved', 3000);
+      NotificationManager.success(element.name, 'Removed from saved', 3000);
     }
     this.setState({savedElements});
   }
@@ -405,7 +405,7 @@ class App extends Component {
 
                 <tbody>
                 {this.state.savedElements.map((op, index) => (
-                  <tr className="savedItems" key={index} onDoubleClick={() => this.saveElement(op)}>
+                  <tr className="savedItems" key={index}>
                     <th onDoubleClick={() => this.copyToClipboard(op.name)}>{op.name} {op.iconId &&
                     <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
                     <th onDoubleClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;</th>
