@@ -18,6 +18,7 @@ const savedElem = new Set();
 
 const customStyles = {
   content: {
+    position: 'relative',
     width: '200px',
     height: '350px',
     left: '50%',
@@ -47,6 +48,7 @@ class App extends Component {
       moneyLimit: null,
       block: false,
       regions: [],
+      currentRegions: new Set(),
       selectedRegions: [-1],
       savedElements: [],
       fixedStation: false,
@@ -78,6 +80,9 @@ class App extends Component {
     observable.pipe(filter(m => m.type === 'unblock-response')).subscribe(() => {
       this.setState({block: false});
     });
+    observable.pipe(filter(m => m.type === 'refresh-regions-response')).subscribe(() => {
+      this.getRegions();
+    });
 
     sendMessage({type: 'table-data', page: this.state.pagination.page});
     this.setState({block: true});
@@ -86,7 +91,11 @@ class App extends Component {
 
   async getRegions() {
     const data = await sendMessageAndWaitResponse({type: 'get-regions'});
-    this.setState({regions: [{name: "All regions", id: -1}, ...data.regions]});
+    let regionsIds = (await sendMessageAndWaitResponse({type: 'load-value', key: 'regions'})).value;
+    regionsIds = typeof regionsIds === "string" ? JSON.parse(regionsIds) : [];
+    const currentRegions = new Set();
+    regionsIds.forEach(r => currentRegions.add(+r));
+    this.setState({regions: [{name: "All regions", id: -1}, ...data.regions], currentRegions});
   }
 
   async getType(typeId) {
@@ -105,6 +114,7 @@ class App extends Component {
 
   async getRoute(origin, destination) {
     return new Promise(resolve => {
+      // toDo 13.01.22, guille, add toute to config file
       axios.get(`https://esi.evetech.net/v1/route/${origin}/${destination}/`)
         .then(res => {
           resolve(res.data);
@@ -140,7 +150,8 @@ class App extends Component {
   syncAllOrders() {
     this.setState({showSyncModal: false});
     this.setState({block: true});
-    sendMessage({type: 'sync-orders-data'});
+    const regions = this.state.selectedRegions.some(v => (v === '-1' || v === -1)) ? [-1] : this.state.selectedRegions;
+    sendMessage({type: 'sync-orders-data', regions});
   }
 
   calculateOrders() {
@@ -242,11 +253,24 @@ class App extends Component {
             <Modal
               isOpen={this.state.showSyncModal}
               onRequestClose={() => this.setState({showSyncModal: false})}
-              style={customStyles}>
+              style={{content: {...customStyles.content, width: '300px', height: '450px'}}}>
+              <button style={{position: 'absolute', top: 0, right: 10, border: 'none', backgroundColor: 'transparent', fontSize: '20px', padding: '10px'}}
+                      onClick={() => this.setState({showSyncModal: false})}>x</button>
               <h3>Sync options</h3>
-
-              <button onClick={() => this.syncAllData()}>sync data</button>
-              <button onClick={() => this.syncAllOrders()}>sync orders</button>
+              <div style={{border: 'solid 1px'}}>
+                <button style={{width: '100%'}} onClick={() => this.syncAllData()}>sync data</button>
+              </div>
+              <div style={{display: 'flex', flexDirection: 'column', marginTop: '20px', border: 'solid 1px'}}>
+                <button onClick={() => this.syncAllOrders()}>sync orders</button>
+                <select multiple
+                        style={{width: '100%', minHeight: '300px'}}
+                        value={this.state.selectedRegions}
+                        onChange={this.handleRegionChange}>
+                  {this.state.regions.map((r, index) => (
+                    <option value={r.id} key={index}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
             </Modal>
 
             <button className="filter" onClick={() => this.setState({showFilterModal: true})}>filter</button>
@@ -254,6 +278,8 @@ class App extends Component {
               isOpen={this.state.showFilterModal}
               onRequestClose={() => this.setState({showFilterModal: false})}
               style={customStyles}>
+              <button style={{position: 'absolute', top: 0, right: 10, border: 'none', backgroundColor: 'transparent', fontSize: '20px', padding: '10px'}}
+                      onClick={() => this.setState({showFilterModal: false})}>x</button>
               <h3>Filter options</h3>
 
               <div style={{display: 'flex', flexDirection: 'column'}}>
@@ -273,13 +299,15 @@ class App extends Component {
               isOpen={this.state.showRegionsModal}
               onRequestClose={() => this.setState({showRegionsModal: false})}
               style={{...customStyles.content, width: '400px'}}>
+              <button style={{position: 'absolute', top: 0, right: 10, border: 'none', backgroundColor: 'transparent', fontSize: '20px', padding: '10px'}}
+                      onClick={() => this.setState({showRegionsModal: false})}>x</button>
               <h3>Select regions</h3>
               <div style={{display: 'flex', flexDirection: 'row'}}>
                 <select multiple
                         style={{width: '50%', minHeight: '300px'}}
                         value={this.state.selectedRegions}
                         onChange={this.handleRegionChange}>
-                  {this.state.regions.map((r, index) => (
+                  {this.state.regions.filter(r => this.state.currentRegions.has(r.id)).map((r, index) => (
                     <option value={r.id} key={index}>{r.name}</option>
                   ))}
                 </select>
@@ -292,7 +320,7 @@ class App extends Component {
                   </div>
                   {this.state.fixedStation && <select value={this.state.fixedRegionValue}
                                                       onChange={(evt) => this.changeFixedRegion(evt)}>
-                    {this.state.regions.map((r, index) => (
+                    {this.state.regions.filter(r => this.state.currentRegions.has(r.id)).map((r, index) => (
                       <option value={r.id} key={index}>{r.name}</option>
                     ))}
                   </select>}
@@ -312,7 +340,9 @@ class App extends Component {
             <Modal
               isOpen={this.state.showSavedElemModal}
               onRequestClose={() => this.setState({showSavedElemModal: false})}
-              style={{...customStyles.content, width: '100vw', height: '100vh', inset: '0px'}}>
+              style={{content: {...customStyles.content, width: 'calc(100vw - 40px)', height: '100vh', inset: 0, transform: 'none', overflow: 'hidden'}}}>
+              <button style={{position: 'absolute', top: 0, right: 10, border: 'none', backgroundColor: 'transparent', fontSize: '20px', padding: '10px'}}
+                      onClick={() => this.setState({showSavedElemModal: false})}>x</button>
               <h3>Saved elements</h3>
               <table className="subtable">
                 <thead>

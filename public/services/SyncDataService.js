@@ -12,6 +12,10 @@ module.exports = (authService) => {
       await this.syncRegions();
       await this.syncConstellations();
       await this.syncSystems();
+
+      // cleaning all orders
+      await dataService.cleanOrders();
+      await dataService.cleanMarketOpportunity();
     },
 
     async syncRegions() {
@@ -71,11 +75,12 @@ module.exports = (authService) => {
       logsService.log('- SYNC STATION (end)');
     },
 
-    async syncOrders() {
+    async syncOrders(regionsFilter) {
       logsService.log('SYNC ORDER (start)');
       await this.checkCredentials();
       await dataService.cleanOrders();
-      const regions = await dataService.getRegions();
+      await dataService.cleanMarketOpportunity();
+      const regions = +regionsFilter[0] === -1 ? await dataService.getRegions() : regionsFilter.map(id => ({id}));
       for (let i = 0, p = 100 / regions.length; i < regions.length; i++) {
         await this.checkTokenAndRefresh();
         logsService.log(`- SYNC ORDER FROM REGION ${regions[i].id} (start) ${Math.round(i * p * 100) / 100}%`);
@@ -85,6 +90,7 @@ module.exports = (authService) => {
         await dataService.saveOrders(orders);
         logsService.log(`- SYNC ORDER FROM REGION ${regions[i].id} (end)`);
       }
+      await dataService.saveValue('regions', regions.map(o => o.id));
       logsService.log('SYNC ORDER (end)');
     },
 
