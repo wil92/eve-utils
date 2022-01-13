@@ -19,6 +19,7 @@
     "react-modal": "^3.14.4",
     "react-notifications": "^1.7.3",
     "react-scripts": "5.0.0",
+    "react-select": "^5.2.2",
     "request-promise": "^4.2.6",
     "rxjs": "^7.5.1",
     "sqlite3": "^5.0.2",

@@ -31,9 +31,6 @@ class Loading extends Component {
   addNewLog(message) {
     const logs = this.state.logs;
     logs.push({message: message, time: new Date().toLocaleTimeString()});
-    while (logs.length > 15) {
-      logs.shift();
-    }
     this.setState({logs});
   }
 

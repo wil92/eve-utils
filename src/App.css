@@ -124,3 +124,17 @@ th {
     font-size: 20px;
     padding: 10px;
 }
+
+.GroupElements {
+    width: calc(100% - 10px);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    border: solid 1px;
+    padding: 5px;
+}
+
+label {
+    margin: 5px 0;
+    font-size: 14px;
+}

@@ -1,6 +1,7 @@
 import {Component} from "react";
 import Modal from 'react-modal';
 import {Img} from "react-image";
+import Select from "react-select";
 import {NotificationContainer, NotificationManager} from "react-notifications";
 import axios from "axios";
 import {filter} from "rxjs";
@@ -104,7 +105,12 @@ class App extends Component {
     regionsIds = typeof regionsIds === "string" ? JSON.parse(regionsIds) : [];
     const currentRegions = new Set();
     regionsIds.forEach(r => currentRegions.add(+r));
-    this.setState({regions: [{name: "All regions", id: -1}, ...data.regions], currentRegions});
+    this.setState({
+      regions: [{label: "All regions", value: -1}, ...data.regions.map(r => ({
+        label: r.name,
+        value: r.id
+      }))], currentRegions
+    });
   }
 
   async loadSavedElements() {
@@ -173,11 +179,11 @@ class App extends Component {
   calculateOrders() {
     this.setState({block: true});
     const regions = this.state.selectedRegions.some(v => (v === '-1' || v === -1)) ? [-1] : this.state.selectedRegions;
-    let fixedStation = null;
+    let fixedStationOrigin = null;
     if (this.state.fixedStation) {
-      fixedStation = this.state.fixedStationValue;
+      fixedStationOrigin = this.state.fixedStationValue;
     }
-    sendMessage({type: 'calculate-market', regions, fixedStation});
+    sendMessage({type: 'calculate-market', regions, fixedStation: fixedStationOrigin});
     this.setState({showRegionsModal: false, moneyLimit: null});
   }
 
@@ -210,15 +216,8 @@ class App extends Component {
     return null;
   }
 
-  handleRegionChange(e) {
-    const options = e.target.options;
-    const value = [];
-    for (let i = 0, l = options.length; i < l; i++) {
-      if (options[i].selected) {
-        value.push(options[i].value);
-      }
-    }
-    this.setState({selectedRegions: value});
+  handleRegionChange(regions) {
+    this.setState({selectedRegions: regions.map(r => r.value)});
   }
 
   async saveElement(element) {
@@ -249,10 +248,14 @@ class App extends Component {
     return ele['earning'] + ele['available'] + ele['seller_place'] + ele['buyer_place'] + ele['volume'] + ele['requested'];
   }
 
-  async changeFixedRegion(evt) {
-    this.setState({fixedRegionValue: evt.target.value, block: true});
-    const data = await sendMessageAndWaitResponse({type: 'get-stations-by-region', regionId: evt.target.value});
-    this.setState({block: false, stations: data.stations});
+  async changeFixedRegion(region) {
+    this.setState({fixedRegionValue: region.value, block: true});
+    const data = await sendMessageAndWaitResponse({type: 'get-stations-by-region', regionId: region.value});
+    this.setState({
+      block: false,
+      stations: data.stations.map(s => ({value: s.id, label: s.name})),
+      fixedStationValue: null
+    });
   }
 
   async copyToClipboard(value) {
@@ -267,7 +270,7 @@ class App extends Component {
         <header className="App-header">
           <div style={{display: 'flex', flexDirection: 'row', margin: '0 20px', minWidth: 'calc(100% - 40px)'}}>
             {this.state.lastSync &&
-            <span style={{fontSize: '15px', whiteSpace: 'nowrap'}}>Last sync ({this.state.lastSync})</span>}
+            <span style={{fontSize: '15px', whiteSpace: 'nowrap', marginTop: '10px'}}>Last sync ({this.state.lastSync})</span>}
 
             <div style={{width: '100%'}}/>
 
@@ -280,46 +283,29 @@ class App extends Component {
                       onClick={() => this.setState({showSyncModal: false})}>x
               </button>
               <h3>Sync options</h3>
-              <div>
-                <button className="Button" style={{margin: '10px 0', width: '100%'}}
-                        onClick={() => this.syncAllData()}>sync data
-                </button>
-              </div>
               <div style={{display: 'flex', flexDirection: 'column'}}>
+                <label htmlFor="selectRegionsToGetOrders">Select regions to get orders</label>
+                <Select
+                  id="selectRegionsToGetOrders"
+                  className="SelectRegions"
+                  isSearchable={true}
+                  menuPortalTarget={document.body}
+                  isMulti
+                  name="Available regions"
+                  defaultValue={this.state.regions.filter(r => this.state.selectedRegions.some(sr => sr === r.value))}
+                  onChange={(regions) => this.handleRegionChange(regions)}
+                  options={this.state.regions}
+                />
                 <button className="Button" style={{margin: '10px 0', width: '100%'}}
                         onClick={() => this.syncAllOrders()}>sync orders
                 </button>
-                <select multiple
-                        style={{width: '100%', minHeight: '300px'}}
-                        value={this.state.selectedRegions}
-                        onChange={this.handleRegionChange}>
-                  {this.state.regions.map((r, index) => (
-                    <option value={r.id} key={index}>{r.name}</option>
-                  ))}
-                </select>
               </div>
-            </Modal>
-
-            <button className="Button" onClick={() => this.setState({showFilterModal: true})}>filter</button>
-            <Modal
-              isOpen={this.state.showFilterModal}
-              onRequestClose={() => this.setState({showFilterModal: false})}
-              style={customStyles}>
-              <button className="CloseButton"
-                      onClick={() => this.setState({showFilterModal: false})}>x
-              </button>
-              <h3>Filter options</h3>
-
-              <div style={{display: 'flex', flexDirection: 'column'}}>
-                <label htmlFor="moneyLimit" style={{fontSize: '14px'}}>max sell cost</label>
-                <input style={{maxWidth: '100%'}} type="text"
-                       id="moneyLimit"
-                       placeholder="money limit"
-                       value={this.state.moneyLimit || ''}
-                       onChange={evt => this.setState({moneyLimit: evt.target.value})}/>
+              <div style={{height: '1px', width: '100%', backgroundColor: 'hsl(0, 0%, 80%)', margin: '10px 0'}}/>
+              <div>
+                <button className="Button" style={{margin: '10px 0', width: '100%'}}
+                        onClick={() => this.syncAllData()}>sync all data
+                </button>
               </div>
-              <div style={{height: '100%'}}/>
-              <button className="Button" style={{margin: '0'}} onClick={() => this.changeMoneyLimit()}>filter</button>
             </Modal>
 
             <button className="Button" onClick={() => this.setState({showRegionsModal: true})}>select regions</button>
@@ -330,46 +316,58 @@ class App extends Component {
               <button className="CloseButton"
                       onClick={() => this.setState({showRegionsModal: false})}>x
               </button>
-              <h3>Select regions</h3>
+              <h3>Calculate best opportunities</h3>
               <div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
-                <select multiple
-                        style={{width: '100%', height: '100%'}}
-                        value={this.state.selectedRegions}
-                        onChange={this.handleRegionChange}>
-                  {this.state.regions.filter(r => r.id === -1 || this.state.currentRegions.has(r.id)).map((r, index) => (
-                    <option value={r.id} key={index}>{r.name}</option>
-                  ))}
-                </select>
-                <div style={{
-                  width: 'calc(100% - 10px)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  marginTop: '20px',
-                  border: 'solid 1px',
-                  padding: '5px'
-                }}>
-                  <div style={{display: 'flex', flexDirection: 'row'}}>
-                    <input type="checkbox" id="enable"
-                           checked={this.state.fixedStation}
-                           onChange={(evt) => this.setState({fixedStation: evt.target.checked})}/>
-                    <label htmlFor="enable">enable fixed station</label>
-                  </div>
-                  {this.state.fixedStation && <select value={this.state.fixedRegionValue}
-                                                      style={{marginTop: '10px'}}
-                                                      onChange={(evt) => this.changeFixedRegion(evt)}>
-                    {this.state.regions.filter(r => r.id === -1 || this.state.currentRegions.has(r.id)).map((r, index) => (
-                      <option value={r.id} key={index}>{r.id === -1 ? 'none' : r.name}</option>
-                    ))}
-                  </select>}
-                  {(this.state.fixedStation && this.state.fixedRegionValue !== '-1') &&
-                  <select value={this.state.fixedStationValue}
-                          style={{marginTop: '10px'}}
-                          onChange={(evt) => this.setState({fixedStationValue: evt.target.value})}>
-                    {this.state.stations.map((r, index) => (
-                      <option value={r.id} key={index}>{r.name}</option>
-                    ))}
-                  </select>}
+                <div style={{display: 'flex', flexDirection: 'row'}}>
+                  <input type="checkbox" id="enable"
+                         checked={this.state.fixedStation}
+                         onChange={(evt) => this.setState({fixedStation: evt.target.checked})}/>
+                  <label htmlFor="enable" style={{margin: 0}}>Select origin station</label>
                 </div>
+                {this.state.fixedStation && <label htmlFor="RegionSelect">Select region</label>}
+                {this.state.fixedStation &&
+                <Select
+                  id="RegionSelect"
+                  className="RegionSelect"
+                  menuPortalTarget={document.body}
+                  isSearchable={true}
+                  name="fixed region"
+                  defaultValue={this.state.regions.find(s => s.value === this.state.fixedRegionValue)}
+                  onChange={(evt) => this.changeFixedRegion(evt)}
+                  options={this.state.regions.filter(r => this.state.currentRegions.has(r.value))}
+                />
+                }
+                {this.state.fixedStation && <label htmlFor="StationSelect">Select station</label>}
+                {this.state.fixedStation &&
+                <Select
+                  id="StationSelect"
+                  className="StationSelect"
+                  menuPortalTarget={document.body}
+                  defaultValue={this.state.stations.find(s => s.value === this.state.fixedStationValue)}
+                  isSearchable={true}
+                  name="fixed station"
+                  onChange={(station) => this.setState({fixedStationValue: station.value})}
+                  options={this.state.stations}
+                />
+                }
+
+                <div style={{height: '1px', width: '100%', backgroundColor: 'hsl(0, 0%, 80%)', margin: '10px 0'}}/>
+
+                <label htmlFor="selectRegions">Select regions</label>
+                <Select
+                  id="selectRegions"
+                  menuPortalTarget={document.body}
+                  className="SelectRegions"
+                  isSearchable={true}
+                  isMulti
+                  name="Available regions"
+                  defaultValue={this.state.regions.filter(r => this.state.selectedRegions.some(sr => sr === r.value))}
+                  onChange={(regions) => this.handleRegionChange(regions)}
+                  options={this.state.regions.filter(r => +r.value === -1 || this.state.currentRegions.has(r.value))}
+                />
+
+                <div style={{height: '100%'}}/>
+
                 <button className="Button" style={{margin: '10px 0 0 0'}}
                         onClick={() => this.calculateOrders()}>calculate opportunities
                 </button>
