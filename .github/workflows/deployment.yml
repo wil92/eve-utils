@@ -12,21 +12,22 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      change: ${{ steps.validation.outputs.exist }}
+      should_deploy:
+        description: "Validate if the auth service should be deployed"
+        value: ${{ steps.validation.outputs.should_deploy }}
 
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 2
       - id: validation
-#        run: if grep -q "server.js" <<< "$(git diff --name-only HEAD HEAD~1)"; then echo "::set-output name=exist::true"; else echo "::set-output name=exist::false"; fi;
-        run: echo "::set-output name=exist::true";
+        run: if grep -q "server.js" <<< "$(git diff --name-only HEAD HEAD~1)"; then echo "::set-output name=should_deploy::true"; else echo "::set-output name=should_deploy::false"; fi;
 
   deploy_auth_service:
 
     needs: pre_deploy
 
-    if: needs.pre_deploy.outputs.change == true && github.ref == 'refs/heads/master'
+    if: needs.pre_deploy.outputs.should_deploy == "true" && github.ref == 'refs/heads/master'
 
     runs-on: ubuntu-latest
 
