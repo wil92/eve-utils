@@ -1,6 +1,6 @@
 import {Component} from "react";
 
-import loading from '../loading-svgrepo-com.svg';
+import loading from '../loading.png';
 import './Loading.css';
 import {observable} from "../services/MessageHandler";
 
@@ -40,7 +40,9 @@ class Loading extends Component {
   render() {
     return (
       <div className="Loading">
-        <img src={loading} className="LoadingIcon" alt="loading"/>
+        <div className="IconContainer">
+          <img src={loading} className="LoadingIcon" alt="loading"/>
+        </div>
         <div className="Logs">
           {this.state.logs.map((log, i) => (
             <span className="Log" key={i} id={i}>{log.time} / {log.message}</span>

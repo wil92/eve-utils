@@ -257,32 +257,29 @@ class App extends Component {
         {this.state.block && <Loading/>}
         <header className="App-header">
           <div style={{display: 'flex', flexDirection: 'row', margin: '0 20px', minWidth: 'calc(100% - 40px)'}}>
-            {this.state.lastSync && <span style={{fontSize: '15px', whiteSpace: 'nowrap'}}>Last sync ({this.state.lastSync})</span>}
+            {this.state.lastSync &&
+            <span style={{fontSize: '15px', whiteSpace: 'nowrap'}}>Last sync ({this.state.lastSync})</span>}
 
             <div style={{width: '100%'}}/>
 
-            <button onClick={() => this.setState({showSyncModal: true})}>sync</button>
+            <button className="Button" onClick={() => this.setState({showSyncModal: true})}>sync</button>
             <Modal
               isOpen={this.state.showSyncModal}
               onRequestClose={() => this.setState({showSyncModal: false})}
-              style={{content: {...customStyles.content, width: '300px', height: '450px'}}}>
-              <button style={{
-                position: 'absolute',
-                top: 0,
-                right: 10,
-                border: 'none',
-                backgroundColor: 'transparent',
-                fontSize: '20px',
-                padding: '10px'
-              }}
+              style={{content: {...customStyles.content, width: '300px', height: '450px', overflow: 'hidden'}}}>
+              <button className="CloseButton"
                       onClick={() => this.setState({showSyncModal: false})}>x
               </button>
               <h3>Sync options</h3>
-              <div style={{border: 'solid 1px'}}>
-                <button style={{width: '100%'}} onClick={() => this.syncAllData()}>sync data</button>
+              <div>
+                <button className="Button" style={{margin: '10px 0', width: '100%'}}
+                        onClick={() => this.syncAllData()}>sync data
+                </button>
               </div>
-              <div style={{display: 'flex', flexDirection: 'column', marginTop: '20px', border: 'solid 1px'}}>
-                <button onClick={() => this.syncAllOrders()}>sync orders</button>
+              <div style={{display: 'flex', flexDirection: 'column'}}>
+                <button className="Button" style={{margin: '10px 0', width: '100%'}}
+                        onClick={() => this.syncAllOrders()}>sync orders
+                </button>
                 <select multiple
                         style={{width: '100%', minHeight: '300px'}}
                         value={this.state.selectedRegions}
@@ -294,20 +291,12 @@ class App extends Component {
               </div>
             </Modal>
 
-            <button className="filter" onClick={() => this.setState({showFilterModal: true})}>filter</button>
+            <button className="Button" onClick={() => this.setState({showFilterModal: true})}>filter</button>
             <Modal
               isOpen={this.state.showFilterModal}
               onRequestClose={() => this.setState({showFilterModal: false})}
               style={customStyles}>
-              <button style={{
-                position: 'absolute',
-                top: 0,
-                right: 10,
-                border: 'none',
-                backgroundColor: 'transparent',
-                fontSize: '20px',
-                padding: '10px'
-              }}
+              <button className="CloseButton"
                       onClick={() => this.setState({showFilterModal: false})}>x
               </button>
               <h3>Filter options</h3>
@@ -321,23 +310,15 @@ class App extends Component {
                        onChange={evt => this.setState({moneyLimit: evt.target.value})}/>
               </div>
               <div style={{height: '100%'}}/>
-              <button onClick={() => this.changeMoneyLimit()}>filter</button>
+              <button className="Button" style={{margin: '0'}} onClick={() => this.changeMoneyLimit()}>filter</button>
             </Modal>
 
-            <button className="filter" onClick={() => this.setState({showRegionsModal: true})}>select regions</button>
+            <button className="Button" onClick={() => this.setState({showRegionsModal: true})}>select regions</button>
             <Modal
               isOpen={this.state.showRegionsModal}
               onRequestClose={() => this.setState({showRegionsModal: false})}
               style={{content: {...customStyles.content, width: '300px', height: '450px'}}}>
-              <button style={{
-                position: 'absolute',
-                top: 0,
-                right: 10,
-                border: 'none',
-                backgroundColor: 'transparent',
-                fontSize: '20px',
-                padding: '10px'
-              }}
+              <button className="CloseButton"
                       onClick={() => this.setState({showRegionsModal: false})}>x
               </button>
               <h3>Select regions</h3>
@@ -380,12 +361,13 @@ class App extends Component {
                     ))}
                   </select>}
                 </div>
-                <button style={{marginTop: '10px'}} onClick={() => this.calculateOrders()}>calculate opportunities
+                <button className="Button" style={{margin: '10px 0 0 0'}}
+                        onClick={() => this.calculateOrders()}>calculate opportunities
                 </button>
               </div>
             </Modal>
 
-            <button className="filter" onClick={() => this.setState({showSavedElemModal: true})}>saved elements</button>
+            <button className="Button" onClick={() => this.setState({showSavedElemModal: true})}>saved elements</button>
             <Modal
               isOpen={this.state.showSavedElemModal}
               onRequestClose={() => this.setState({showSavedElemModal: false})}
@@ -399,15 +381,7 @@ class App extends Component {
                   overflow: 'hidden'
                 }
               }}>
-              <button style={{
-                position: 'absolute',
-                top: 0,
-                right: 10,
-                border: 'none',
-                backgroundColor: 'transparent',
-                fontSize: '20px',
-                padding: '10px'
-              }}
+              <button className="CloseButton"
                       onClick={() => this.setState({showSavedElemModal: false})}>x
               </button>
               <h3>Saved elements</h3>
