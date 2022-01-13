@@ -43,7 +43,7 @@ class Loading extends Component {
         <img src={loading} className="LoadingIcon" alt="loading"/>
         <div className="Logs">
           {this.state.logs.map((log, i) => (
-            <span className="Log" id={i}>{log.time} / {log.message}</span>
+            <span className="Log" key={i} id={i}>{log.time} / {log.message}</span>
           ))}
         </div>
       </div>

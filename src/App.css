@@ -60,11 +60,11 @@ th {
     border: solid .001rem rgba(255, 255, 255, 0.37);
     border-spacing: 0;
     padding: 0 4px;
-    font-weight: lighter;
+    font-weight: 300;
     color: white;
 }
 
-.thinline {
+.thinline, button {
     white-space: nowrap;
 }
 

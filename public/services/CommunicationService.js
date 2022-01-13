@@ -9,6 +9,7 @@ const ordersService = require("./AnalyseOrdersService");
 const AuthService = require("./AuthService");
 const SyncDataService = require('./SyncDataService');
 const config = require("./config");
+const moment = require("moment");
 
 const authService = AuthService(config);
 const syncDataService = SyncDataService(authService);
@@ -53,6 +54,12 @@ module.exports = (window) => {
         await syncDataService.syncOrders(data.regions);
         await this.sendTableResult({page: 1});
         window.webContents.send('in-message', {type: 'refresh-regions-response'});
+
+        // updating lastSync date
+        const lastSync = moment().format('MMMM Do YYYY, h:mm:ss a');
+        await dataService.saveValue('lastSync', lastSync);
+        window.webContents.send('in-message', {type: 'load-value-response', value: lastSync, key: 'lastSync'});
+
         logsService.unblock();
       });
 

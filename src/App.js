@@ -54,7 +54,8 @@ class App extends Component {
       fixedStation: false,
       fixedRegionValue: '-1',
       fixedStationValue: null,
-      stations: []
+      stations: [],
+      lastSync: null
     };
   }
 
@@ -83,8 +84,15 @@ class App extends Component {
     observable.pipe(filter(m => m.type === 'refresh-regions-response')).subscribe(() => {
       this.getRegions();
     });
+    observable.pipe(filter(m => m.type === 'load-value-response')).subscribe((data) => {
+      console.log(data)
+      if (data.key === 'lastSync' && data.value) {
+        this.setState({lastSync: data.value});
+      }
+    });
 
     sendMessage({type: 'table-data', page: this.state.pagination.page});
+    sendMessage({type: 'load-value', key: 'lastSync'});
     this.setState({block: true});
     this.getRegions();
   }
@@ -248,7 +256,11 @@ class App extends Component {
       <div className="App">
         {this.state.block && <Loading/>}
         <header className="App-header">
-          <div>
+          <div style={{display: 'flex', flexDirection: 'row', margin: '0 20px', minWidth: 'calc(100% - 40px)'}}>
+            {this.state.lastSync && <span style={{fontSize: '15px', whiteSpace: 'nowrap'}}>Last sync ({this.state.lastSync})</span>}
+
+            <div style={{width: '100%'}}/>
+
             <button onClick={() => this.setState({showSyncModal: true})}>sync</button>
             <Modal
               isOpen={this.state.showSyncModal}
@@ -447,7 +459,7 @@ class App extends Component {
             </Modal>
           </div>
 
-          <table>
+          <table style={{margin: '10px', minWidth: 'calc(100% - 40px)'}}>
             <thead>
             <tr>
               <th>Name</th>
