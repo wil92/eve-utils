@@ -11,18 +11,21 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    outputs:
+      should_deploy: ${{ steps.validation.outputs.should_deploy }}
+
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 2
       - id: validation
-        run: if grep -q "server.js" <<< "$(git diff --name-only HEAD HEAD~1)"; then echo "::set-output name=should_deploy::true"; else echo "::set-output name=should_deploy::false"; fi;
+        run: if [[ "$(git diff --name-only HEAD HEAD~1)" == *"server.js"* ]]; then echo "::set-output name=should_deploy::true"; else echo "::set-output name=should_deploy::false"; fi;
 
   deploy_auth_service:
 
     needs: pre_deploy
 
-    if: needs.pre_deploy.steps.vars.outputs.should_deploy == 'true' && github.ref == 'refs/heads/master'
+    if: needs.pre_deploy.outputs.should_deploy == 'true' && github.ref == 'refs/heads/master'
 
     runs-on: ubuntu-latest
 
