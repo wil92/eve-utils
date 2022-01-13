@@ -52,7 +52,7 @@ class App extends Component {
       selectedRegions: [-1],
       savedElements: [],
       fixedStation: false,
-      fixedRegionValue: null,
+      fixedRegionValue: '-1',
       fixedStationValue: null,
       stations: []
     };
@@ -162,7 +162,7 @@ class App extends Component {
       fixedStation = this.state.fixedStationValue;
     }
     sendMessage({type: 'calculate-market', regions, fixedStation});
-    this.setState({showRegionsModal: false});
+    this.setState({showRegionsModal: false, moneyLimit: null});
   }
 
   async deleteOpportunity(opportunityId) {
@@ -254,8 +254,17 @@ class App extends Component {
               isOpen={this.state.showSyncModal}
               onRequestClose={() => this.setState({showSyncModal: false})}
               style={{content: {...customStyles.content, width: '300px', height: '450px'}}}>
-              <button style={{position: 'absolute', top: 0, right: 10, border: 'none', backgroundColor: 'transparent', fontSize: '20px', padding: '10px'}}
-                      onClick={() => this.setState({showSyncModal: false})}>x</button>
+              <button style={{
+                position: 'absolute',
+                top: 0,
+                right: 10,
+                border: 'none',
+                backgroundColor: 'transparent',
+                fontSize: '20px',
+                padding: '10px'
+              }}
+                      onClick={() => this.setState({showSyncModal: false})}>x
+              </button>
               <h3>Sync options</h3>
               <div style={{border: 'solid 1px'}}>
                 <button style={{width: '100%'}} onClick={() => this.syncAllData()}>sync data</button>
@@ -278,8 +287,17 @@ class App extends Component {
               isOpen={this.state.showFilterModal}
               onRequestClose={() => this.setState({showFilterModal: false})}
               style={customStyles}>
-              <button style={{position: 'absolute', top: 0, right: 10, border: 'none', backgroundColor: 'transparent', fontSize: '20px', padding: '10px'}}
-                      onClick={() => this.setState({showFilterModal: false})}>x</button>
+              <button style={{
+                position: 'absolute',
+                top: 0,
+                right: 10,
+                border: 'none',
+                backgroundColor: 'transparent',
+                fontSize: '20px',
+                padding: '10px'
+              }}
+                      onClick={() => this.setState({showFilterModal: false})}>x
+              </button>
               <h3>Filter options</h3>
 
               <div style={{display: 'flex', flexDirection: 'column'}}>
@@ -298,20 +316,36 @@ class App extends Component {
             <Modal
               isOpen={this.state.showRegionsModal}
               onRequestClose={() => this.setState({showRegionsModal: false})}
-              style={{...customStyles.content, width: '400px'}}>
-              <button style={{position: 'absolute', top: 0, right: 10, border: 'none', backgroundColor: 'transparent', fontSize: '20px', padding: '10px'}}
-                      onClick={() => this.setState({showRegionsModal: false})}>x</button>
+              style={{content: {...customStyles.content, width: '300px', height: '450px'}}}>
+              <button style={{
+                position: 'absolute',
+                top: 0,
+                right: 10,
+                border: 'none',
+                backgroundColor: 'transparent',
+                fontSize: '20px',
+                padding: '10px'
+              }}
+                      onClick={() => this.setState({showRegionsModal: false})}>x
+              </button>
               <h3>Select regions</h3>
-              <div style={{display: 'flex', flexDirection: 'row'}}>
+              <div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
                 <select multiple
-                        style={{width: '50%', minHeight: '300px'}}
+                        style={{width: '100%', height: '100%'}}
                         value={this.state.selectedRegions}
                         onChange={this.handleRegionChange}>
-                  {this.state.regions.filter(r => this.state.currentRegions.has(r.id)).map((r, index) => (
+                  {this.state.regions.filter(r => r.id === -1 || this.state.currentRegions.has(r.id)).map((r, index) => (
                     <option value={r.id} key={index}>{r.name}</option>
                   ))}
                 </select>
-                <div style={{width: '50%', display: 'flex', flexDirection: 'column'}}>
+                <div style={{
+                  width: 'calc(100% - 10px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  marginTop: '20px',
+                  border: 'solid 1px',
+                  padding: '5px'
+                }}>
                   <div style={{display: 'flex', flexDirection: 'row'}}>
                     <input type="checkbox" id="enable"
                            checked={this.state.fixedStation}
@@ -319,30 +353,51 @@ class App extends Component {
                     <label htmlFor="enable">enable fixed station</label>
                   </div>
                   {this.state.fixedStation && <select value={this.state.fixedRegionValue}
+                                                      style={{marginTop: '10px'}}
                                                       onChange={(evt) => this.changeFixedRegion(evt)}>
-                    {this.state.regions.filter(r => this.state.currentRegions.has(r.id)).map((r, index) => (
-                      <option value={r.id} key={index}>{r.name}</option>
+                    {this.state.regions.filter(r => r.id === -1 || this.state.currentRegions.has(r.id)).map((r, index) => (
+                      <option value={r.id} key={index}>{r.id === -1 ? 'none' : r.name}</option>
                     ))}
                   </select>}
-                  {this.state.fixedStation && <select value={this.state.fixedStationValue}
-                                                      onChange={(evt) => this.setState({fixedStationValue: evt.target.value})}>
+                  {(this.state.fixedStation && this.state.fixedRegionValue !== '-1') &&
+                  <select value={this.state.fixedStationValue}
+                          style={{marginTop: '10px'}}
+                          onChange={(evt) => this.setState({fixedStationValue: evt.target.value})}>
                     {this.state.stations.map((r, index) => (
                       <option value={r.id} key={index}>{r.name}</option>
                     ))}
                   </select>}
                 </div>
+                <button style={{marginTop: '10px'}} onClick={() => this.calculateOrders()}>calculate opportunities
+                </button>
               </div>
-              <button style={{marginTop: '10px'}} onClick={() => this.calculateOrders()}>calculate opportunities
-              </button>
             </Modal>
 
             <button className="filter" onClick={() => this.setState({showSavedElemModal: true})}>saved elements</button>
             <Modal
               isOpen={this.state.showSavedElemModal}
               onRequestClose={() => this.setState({showSavedElemModal: false})}
-              style={{content: {...customStyles.content, width: 'calc(100vw - 40px)', height: '100vh', inset: 0, transform: 'none', overflow: 'hidden'}}}>
-              <button style={{position: 'absolute', top: 0, right: 10, border: 'none', backgroundColor: 'transparent', fontSize: '20px', padding: '10px'}}
-                      onClick={() => this.setState({showSavedElemModal: false})}>x</button>
+              style={{
+                content: {
+                  ...customStyles.content,
+                  width: 'calc(100vw - 40px)',
+                  height: '100vh',
+                  inset: 0,
+                  transform: 'none',
+                  overflow: 'hidden'
+                }
+              }}>
+              <button style={{
+                position: 'absolute',
+                top: 0,
+                right: 10,
+                border: 'none',
+                backgroundColor: 'transparent',
+                fontSize: '20px',
+                padding: '10px'
+              }}
+                      onClick={() => this.setState({showSavedElemModal: false})}>x
+              </button>
               <h3>Saved elements</h3>
               <table className="subtable">
                 <thead>
