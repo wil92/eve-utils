@@ -87,6 +87,12 @@ class App extends Component {
         opportunities[i]['iconId'] = type['icon_id'];
         opportunities[i].earning = Math.round(opportunities[i].earning * 100) / 100;
         opportunities[i].investment = Math.round(opportunities[i].sell * Math.min(opportunities[i].available, opportunities[i].requested) * 100) / 100;
+
+        // calculate security
+        const route = await this.getRoute(opportunities[i]['seller_place_id'], opportunities[i]['buyer_place_id']);
+        const {securityStatus} = await sendMessageAndWaitResponse({type: 'get-security-status', route});
+        opportunities[i].jumps = route.length;
+        opportunities[i].securityStatus = Math.round(securityStatus * 100) / 100;
       }
       this.setState({
         opportunities,
@@ -251,13 +257,7 @@ class App extends Component {
     if (!savedElem.has(hash)) {
       this.setState({block: true});
       savedElem.add(hash);
-      const route = await this.getRoute(element['seller_place_id'], element['buyer_place_id']);
-      const {securityStatus} = await sendMessageAndWaitResponse({type: 'get-security-status', route});
-      savedElements = [...this.state.savedElements, {
-        ...element,
-        jumps: route.length,
-        securityStatus: Math.round(securityStatus * 100) / 100
-      }];
+      savedElements = [...this.state.savedElements, {...element}];
       this.setState({block: false});
       NotificationManager.success(element.name, 'Opportunity saved', 3000);
     } else {
@@ -544,6 +544,8 @@ class App extends Component {
               <th>Buy cost</th>
               <th>Seller station</th>
               <th>Buyer station</th>
+              <th>Jumps</th>
+              <th>Security</th>
               <th>actions</th>
             </tr>
             </thead>
@@ -565,6 +567,8 @@ class App extends Component {
                 <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.buy)}>{op.buy} ISK</th>
                 <th onDoubleClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
                 <th onDoubleClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
+                <th onDoubleClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</th>
+                <th onDoubleClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</th>
                 <th className="thinline">
                   <button onClick={() => this.saveElement(op)}
                           title={savedElem.has(this.elementHash(op)) ? 'unsave' : 'save'}>
