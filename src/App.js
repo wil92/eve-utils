@@ -30,6 +30,15 @@ const customStyles = {
   },
 };
 
+const selectStyles = {
+  option: (provided) => ({...provided, fontSize: '14px',}),
+  input: (provided) => ({...provided, fontSize: '14px',}),
+  control: (provided) => ({...provided, fontSize: '14px', minHeight: '30px'}),
+  singleValue: (provided) => ({...provided, fontSize: '14px'}),
+  dropdownIndicator: (provided) => ({...provided, padding: '3px'}),
+  clearIndicator: (provided) => ({...provided, padding: '3px'})
+}
+
 Modal.setAppElement('#root');
 
 class App extends Component {
@@ -52,10 +61,17 @@ class App extends Component {
       currentRegions: new Set(),
       selectedRegions: [-1],
       savedElements: [],
+      // origin station
       fixedStation: false,
       fixedRegionValue: '-1',
       fixedStationValue: null,
       stations: [],
+      // destination station
+      fixedStationDestination: false,
+      fixedRegionDestinationValue: '-1',
+      fixedStationDestinationValue: null,
+      stationsDestination: [],
+
       lastSync: null
     };
   }
@@ -258,6 +274,16 @@ class App extends Component {
     });
   }
 
+  async changeFixedRegionDestination(region) {
+    this.setState({fixedRegionDestinationValue: region.value, block: true});
+    const data = await sendMessageAndWaitResponse({type: 'get-stations-by-region', regionId: region.value});
+    this.setState({
+      block: false,
+      stationsDestination: data.stations.map(s => ({value: s.id, label: s.name})),
+      fixedStationDestinationValue: null
+    });
+  }
+
   async copyToClipboard(value) {
     await navigator.clipboard.writeText(value);
     NotificationManager.success(value, 'copy to clipboard', 1000);
@@ -270,7 +296,11 @@ class App extends Component {
         <header className="App-header">
           <div style={{display: 'flex', flexDirection: 'row', margin: '0 20px', minWidth: 'calc(100% - 40px)'}}>
             {this.state.lastSync &&
-            <span style={{fontSize: '15px', whiteSpace: 'nowrap', marginTop: '10px'}}>Last sync ({this.state.lastSync})</span>}
+            <span style={{
+              fontSize: '15px',
+              whiteSpace: 'nowrap',
+              marginTop: '10px'
+            }}>Last sync ({this.state.lastSync})</span>}
 
             <div style={{width: '100%'}}/>
 
@@ -286,6 +316,7 @@ class App extends Component {
               <div style={{display: 'flex', flexDirection: 'column'}}>
                 <label htmlFor="selectRegionsToGetOrders">Select regions to get orders</label>
                 <Select
+                  styles={selectStyles}
                   id="selectRegionsToGetOrders"
                   className="SelectRegions"
                   isSearchable={true}
@@ -319,14 +350,15 @@ class App extends Component {
               <h3>Calculate best opportunities</h3>
               <div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
                 <div style={{display: 'flex', flexDirection: 'row'}}>
-                  <input type="checkbox" id="enable"
+                  <input type="checkbox" id="enableOrigin"
                          checked={this.state.fixedStation}
                          onChange={(evt) => this.setState({fixedStation: evt.target.checked})}/>
-                  <label htmlFor="enable" style={{margin: 0}}>Select origin station</label>
+                  <label htmlFor="enableOrigin" style={{margin: 0}}>Select origin station</label>
                 </div>
                 {this.state.fixedStation && <label htmlFor="RegionSelect">Select region</label>}
                 {this.state.fixedStation &&
                 <Select
+                  styles={selectStyles}
                   id="RegionSelect"
                   className="RegionSelect"
                   menuPortalTarget={document.body}
@@ -340,6 +372,7 @@ class App extends Component {
                 {this.state.fixedStation && <label htmlFor="StationSelect">Select station</label>}
                 {this.state.fixedStation &&
                 <Select
+                  styles={selectStyles}
                   id="StationSelect"
                   className="StationSelect"
                   menuPortalTarget={document.body}
@@ -351,10 +384,48 @@ class App extends Component {
                 />
                 }
 
-                <div style={{height: '1px', width: '100%', backgroundColor: 'hsl(0, 0%, 80%)', margin: '10px 0'}}/>
+                <div style={{height: '1px', minHeight: '1px', width: '100%', backgroundColor: 'hsl(0, 0%, 80%)', margin: '10px 0'}}/>
+
+                <div style={{display: 'flex', flexDirection: 'row'}}>
+                  <input type="checkbox" id="enableDestination"
+                         checked={this.state.fixedStationDestination}
+                         onChange={(evt) => this.setState({fixedStationDestination: evt.target.checked})}/>
+                  <label htmlFor="enableDestination" style={{margin: 0}}>Select destination station</label>
+                </div>
+                {this.state.fixedStationDestination && <label htmlFor="RegionSelect">Select region</label>}
+                {this.state.fixedStationDestination &&
+                <Select
+                  styles={selectStyles}
+                  id="RegionSelect"
+                  className="RegionSelect"
+                  menuPortalTarget={document.body}
+                  isSearchable={true}
+                  name="fixed region"
+                  defaultValue={this.state.regions.find(s => s.value === this.state.fixedRegionDestinationValue)}
+                  onChange={(evt) => this.changeFixedRegionDestination(evt)}
+                  options={this.state.regions.filter(r => this.state.currentRegions.has(r.value))}
+                />
+                }
+                {this.state.fixedStationDestination && <label htmlFor="StationSelect">Select station</label>}
+                {this.state.fixedStationDestination &&
+                <Select
+                  styles={selectStyles}
+                  id="StationSelect"
+                  className="StationSelect"
+                  menuPortalTarget={document.body}
+                  defaultValue={this.state.stationsDestination.find(s => s.value === this.state.fixedStationDestinationValue)}
+                  isSearchable={true}
+                  name="fixed station"
+                  onChange={(station) => this.setState({fixedStationDestinationValue: station.value})}
+                  options={this.state.stationsDestination}
+                />
+                }
+
+                <div style={{height: '1px', minHeight: '1px', width: '100%', backgroundColor: 'hsl(0, 0%, 80%)', margin: '10px 0'}}/>
 
                 <label htmlFor="selectRegions">Select regions</label>
                 <Select
+                  styles={selectStyles}
                   id="selectRegions"
                   menuPortalTarget={document.body}
                   className="SelectRegions"
