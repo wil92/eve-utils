@@ -2,7 +2,7 @@ const dataService = require('./DataService');
 const logsService = require("./LogsService");
 
 module.exports = {
-  async calculateBestOffers(regions, fixedStation) {
+  async calculateBestOffers(regions, fixedStationOrigin, fixedStationDestination) {
     const bestOffers = await new Promise((resolve) => {
       const maxBuy = new Map();
       const minSell = new Map();
@@ -13,17 +13,19 @@ module.exports = {
         typesSet.add(type);
         if (order['is_buy_order']) {
           // buy order
-          if (maxBuy.has(type)) {
-            const tmp = maxBuy.get(type);
-            if (tmp['price'] < order['price']) {
+          if ((fixedStationDestination && fixedStationDestination === order['location_id']) || !fixedStationDestination) {
+            if (maxBuy.has(type)) {
+              const tmp = maxBuy.get(type);
+              if (tmp['price'] < order['price']) {
+                maxBuy.set(type, order);
+              }
+            } else {
               maxBuy.set(type, order);
             }
-          } else {
-            maxBuy.set(type, order);
           }
         } else {
           // sell order
-          if ((fixedStation && fixedStation === order['location_id']) || !fixedStation) {
+          if ((fixedStationOrigin && fixedStationOrigin === order['location_id']) || !fixedStationOrigin) {
             if (minSell.has(type)) {
               const tmp = minSell.get(type);
               if (tmp['price'] > order['price']) {

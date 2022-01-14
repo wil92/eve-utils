@@ -65,11 +65,13 @@ module.exports = (window) => {
 
       ipcMain.on('calculate-market', async (event, data) => {
         logsService.log('Start market calculation');
-        let fixedStation;
-        if (data.fixedStation) {
-          fixedStation = +data.fixedStation;
+        let fixedStationOrigin;
+        // fixedStationOrigin, fixedStationDestination
+        if (data.fixedStationOrigin) {
+          fixedStationOrigin = +data.fixedStationOrigin;
         }
-        await ordersService.calculateBestOffers(data.regions, fixedStation);
+        const fixedStationDestination = data.fixedStationDestination && +data.fixedStationDestination;
+        await ordersService.calculateBestOffers(data.regions, fixedStationOrigin, fixedStationDestination);
         await this.sendTableResult({page: 1});
       });
 

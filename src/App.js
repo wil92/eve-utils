@@ -199,7 +199,16 @@ class App extends Component {
     if (this.state.fixedStation) {
       fixedStationOrigin = this.state.fixedStationValue;
     }
-    sendMessage({type: 'calculate-market', regions, fixedStation: fixedStationOrigin});
+    let fixedStationDestination = null;
+    if (this.state.fixedStationDestination) {
+      fixedStationDestination = this.state.fixedStationDestinationValue;
+    }
+    sendMessage({
+      type: 'calculate-market',
+      regions,
+      fixedStationOrigin,
+      fixedStationDestination
+    });
     this.setState({showRegionsModal: false, moneyLimit: null});
   }
 
@@ -384,7 +393,13 @@ class App extends Component {
                 />
                 }
 
-                <div style={{height: '1px', minHeight: '1px', width: '100%', backgroundColor: 'hsl(0, 0%, 80%)', margin: '10px 0'}}/>
+                <div style={{
+                  height: '1px',
+                  minHeight: '1px',
+                  width: '100%',
+                  backgroundColor: 'hsl(0, 0%, 80%)',
+                  margin: '10px 0'
+                }}/>
 
                 <div style={{display: 'flex', flexDirection: 'row'}}>
                   <input type="checkbox" id="enableDestination"
@@ -421,7 +436,13 @@ class App extends Component {
                 />
                 }
 
-                <div style={{height: '1px', minHeight: '1px', width: '100%', backgroundColor: 'hsl(0, 0%, 80%)', margin: '10px 0'}}/>
+                <div style={{
+                  height: '1px',
+                  minHeight: '1px',
+                  width: '100%',
+                  backgroundColor: 'hsl(0, 0%, 80%)',
+                  margin: '10px 0'
+                }}/>
 
                 <label htmlFor="selectRegions">Select regions</label>
                 <Select
