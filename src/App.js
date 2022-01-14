@@ -570,11 +570,14 @@ class App extends Component {
                 <th onDoubleClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</th>
                 <th onDoubleClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</th>
                 <th className="thinline">
-                  <button onClick={() => this.saveElement(op)}
+                  <button className="Button ButtonAction"
+                          onClick={() => this.saveElement(op)}
                           title={savedElem.has(this.elementHash(op)) ? 'unsave' : 'save'}>
                     {savedElem.has(this.elementHash(op)) ? '-' : '+'}
                   </button>
-                  <button onClick={() => this.deleteOpportunity(op.id)} title="remove">x</button>
+                  <button className="Button ButtonAction"
+                          onClick={() => this.deleteOpportunity(op.id)} title="remove">x
+                  </button>
                 </th>
               </tr>
             ))}
@@ -583,7 +586,7 @@ class App extends Component {
 
           <div>
             {this.state.pages.map((p, index) => (
-              <button className={p === this.state.pagination.page ? 'currentPage' : undefined} key={index}
+              <button className={p === this.state.pagination.page ? 'page dark active' : 'page dark'} key={index}
                       onClick={() => this.changePage(p)}>
                 {p}
               </button>
