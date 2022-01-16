@@ -56,6 +56,10 @@ table {
     font-weight: 400;
 }
 
+.applied {
+    background-color: #44c1447d;
+}
+
 th {
     border: solid .001rem rgba(255, 255, 255, 0.37);
     border-spacing: 0;

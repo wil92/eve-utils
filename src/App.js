@@ -269,6 +269,17 @@ class App extends Component {
     this.setState({savedElements});
   }
 
+  async applyElement(element) {
+    const savedElements = this.state.savedElements.map(el => {
+      if (this.elementHash(el) === this.elementHash(element)) {
+        return {...el, applied: !el.applied};
+      }
+      return el;
+    });
+    this.setState({savedElements});
+    sendMessage({type: 'save-value', key: 'savedElements', value: JSON.stringify(savedElements)});
+  }
+
   elementHash(ele) {
     return ele['earning'] + ele['available'] + ele['seller_place'] + ele['buyer_place'] + ele['volume'] + ele['requested'];
   }
@@ -505,7 +516,7 @@ class App extends Component {
 
                 <tbody>
                 {this.state.savedElements.map((op, index) => (
-                  <tr className="savedItems" key={index}>
+                  <tr className={'savedItems ' + (op.applied ? 'applied' : '')} key={index}>
                     <th title={`seller_id:${op['seller_id']} / buyer_id:${op['buyer_id']}`}
                         onDoubleClick={() => this.copyToClipboard(op.name)}>{op.name} {op.iconId &&
                     <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
@@ -531,7 +542,10 @@ class App extends Component {
                         onDoubleClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
                     <th onDoubleClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</th>
                     <th onDoubleClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</th>
-                    <th>
+                    <th className="thinline">
+                      <button onClick={() => this.applyElement(op)}
+                              title={op.applied ? 'unapply' : 'apply'}>{op.applied ? <span>&#9746;</span> :
+                        <span>&#9745;</span>}</button>
                       <button onClick={() => this.saveElement(op)} title="unsave">-</button>
                     </th>
                   </tr>
