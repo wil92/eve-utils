@@ -489,7 +489,8 @@ class App extends Component {
                 <tr>
                   <th>Name</th>
                   <th>Volume</th>
-                  <th title={this.state.savedElements.reduce((p, v) => p + v.earning, 0).toLocaleString()}>Profit&#182;</th>
+                  <th
+                    title={this.state.savedElements.reduce((p, v) => p + v.earning, 0).toLocaleString()}>Profit&#182;</th>
                   <th>Investment</th>
                   <th>available/requested</th>
                   <th>Sell cost</th>
@@ -505,7 +506,8 @@ class App extends Component {
                 <tbody>
                 {this.state.savedElements.map((op, index) => (
                   <tr className="savedItems" key={index}>
-                    <th onDoubleClick={() => this.copyToClipboard(op.name)}>{op.name} {op.iconId &&
+                    <th title={`seller_id:${op['seller_id']} / buyer_id:${op['buyer_id']}`}
+                        onDoubleClick={() => this.copyToClipboard(op.name)}>{op.name} {op.iconId &&
                     <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
                     <th
                       onDoubleClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;/{Math.round(op.volume * Math.min(op.available, op.requested) * 100) / 100}m&#179;</th>
@@ -517,10 +519,16 @@ class App extends Component {
                     </th>
                     <th
                       onDoubleClick={() => this.copyToClipboard(Math.min(op.requested, op.available))}>{op.available}/{op.requested}</th>
-                    <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.sell)}>{op.sell.toLocaleString()} ISK</th>
-                    <th className="thinline" onDoubleClick={() => this.copyToClipboard(op.buy)}>{op.buy.toLocaleString()} ISK</th>
-                    <th onDoubleClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
-                    <th onDoubleClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
+                    <th className="thinline"
+                        onDoubleClick={() => this.copyToClipboard(op.sell)}>{op.sell.toLocaleString()} ISK
+                    </th>
+                    <th className="thinline"
+                        onDoubleClick={() => this.copyToClipboard(op.buy)}>{op.buy.toLocaleString()} ISK
+                    </th>
+                    <th title={op['seller_place_id']}
+                        onDoubleClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
+                    <th title={op['buyer_place_id']}
+                        onDoubleClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
                     <th onDoubleClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</th>
                     <th onDoubleClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</th>
                     <th>
@@ -554,7 +562,8 @@ class App extends Component {
             <tbody>
             {this.state.opportunities.map((op, index) => (
               <tr className={savedElem.has(this.elementHash(op)) ? 'selected' : 'mainItems'} key={index}>
-                <th onDoubleClick={() => this.copyToClipboard(op.name)}>{op.name} {(op.iconId) &&
+                <th title={`seller_id:${op['seller_id']} / buyer_id:${op['buyer_id']}`}
+                    onDoubleClick={() => this.copyToClipboard(op.name)}>{op.name} {(op.iconId) &&
                 <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
                 <th
                   onDoubleClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;/{Math.round(op.volume * Math.min(op.available, op.requested) * 100) / 100}m&#179;</th>
@@ -572,8 +581,10 @@ class App extends Component {
                 <th className="thinline"
                     onDoubleClick={() => this.copyToClipboard(op.buy)}>{op.buy.toLocaleString()} ISK
                 </th>
-                <th onDoubleClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
-                <th onDoubleClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
+                <th title={op['seller_place_id']}
+                    onDoubleClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
+                <th title={op['buyer_place_id']}
+                    onDoubleClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
                 <th onDoubleClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</th>
                 <th onDoubleClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</th>
                 <th className="thinline">

@@ -68,7 +68,11 @@ th {
     white-space: nowrap;
 }
 
-.mainItems:hover, .selected {
+.mainItems:hover {
+    background-color: rgba(0, 0, 0, 0.19);
+}
+
+.selected {
     background-color: #000;
 }
 

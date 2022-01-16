@@ -47,26 +47,50 @@ module.exports = {
 
   async removeOpportunity(opportunityId) {
     const opportunity = await this.getOpportunity(opportunityId);
-    return new Promise((resolve, reject) => {
+    const ordersIdsToRemove = [];
+
+    let orderIdToUpdate = 0;
+    let remain = 0;
+    if (opportunity.available - opportunity.requested  > 0) {
+      orderIdToUpdate = opportunity['seller_id'];
+      remain = opportunity.available - opportunity.requested;
+    } else if (opportunity.available - opportunity.requested < 0) {
+      orderIdToUpdate = opportunity['buyer_id'];
+      remain = opportunity.requested - opportunity.available;
+    }
+
+    let where = '';
+    if (opportunity.available - opportunity.requested <= 0) {
+      ordersIdsToRemove.push(opportunity['seller_id']);
+      where = 'id=?';
+    }
+    if (opportunity.requested - opportunity.available <= 0) {
+      ordersIdsToRemove.push(opportunity['buyer_id']);
+      where = where + (where === '' ? '' : ' OR ') + 'id=?';
+    }
+
+    await new Promise((resolve, reject) => {
       database.serialize(() => {
         database.run('DELETE FROM market_opportunity WHERE id=?;', [opportunityId]);
-        database.run('DELETE FROM market_order WHERE id=? OR id=?;', [opportunity['buyer_id'], opportunity['seller_id']], (err) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve();
+        database.run(`DELETE FROM market_order WHERE ${where};`, ordersIdsToRemove, (err) => {
+          err ? reject(err) : resolve();
         });
       });
     });
+
+    if (remain > 0) {
+      await new Promise((resolve, reject) => {
+        database.run('UPDATE market_order SET volume_remain=? WHERE id=?;', [remain, orderIdToUpdate], (err) => {
+          err ? reject(err) : resolve();
+        });
+      });
+    }
   },
 
   async getOpportunity(opportunityId) {
     return new Promise((resolve, reject) => {
       database.get('SELECT * FROM market_opportunity WHERE id=?', [opportunityId], (err, row) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(row);
+        err ? reject(err) : resolve(row);
       });
     });
   },
@@ -80,10 +104,7 @@ module.exports = {
     const sql = 'SELECT * from config WHERE key=?;';
     return new Promise((resolve, reject) => {
       database.get(sql, [key], (err, row) => {
-        if (err) {
-          return reject(err);
-        }
-        row ? resolve(row.data) : resolve(null);
+        err ? reject(err) : (row ? resolve(row.data) : resolve(null));
       });
     });
   },
@@ -91,10 +112,7 @@ module.exports = {
   async getRegions() {
     return new Promise((resolve, reject) => {
       database.all('SELECT * from region;', [], (err, rows) => {
-        if (err) {
-          return reject(err);
-        }
-        rows ? resolve(rows) : resolve([]);
+        err ? reject(err) : (rows ? resolve(rows) : resolve([]));
       });
     });
   },
@@ -102,10 +120,7 @@ module.exports = {
   async getAllRegions() {
     return new Promise((resolve, reject) => {
       database.all('select * from region;', [], (err, rows) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(rows);
+        err ? reject(err) : resolve(rows);
       })
     });
   },
@@ -125,10 +140,7 @@ module.exports = {
   async getAllStationsByRegionId(regionId) {
     return new Promise((resolve, reject) => {
       database.all('SELECT s.* FROM station AS s INNER JOIN system AS sy ON sy.id = s.system_id INNER JOIN constellation AS c ON c.id = sy.constellation_id WHERE c.region_id = ?;', [regionId], (err, rows) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(rows);
+        err ? reject(err) : resolve(rows);
       })
     });
   },
@@ -138,10 +150,7 @@ module.exports = {
       const data = typeof value === "object" ? JSON.stringify(value) : value;
       database.run(`INSERT
       OR REPLACE INTO config (key, data) VALUES(?, ?)`, [key, data], function (err) {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
+        err ? reject(err) : resolve();
       });
     });
   },
@@ -196,10 +205,7 @@ module.exports = {
                    FROM market_opportunity AS mo ${where} LIMIT ?
                    OFFSET ?;`
       database.all(sql, [pageSize, page * pageSize], (err, rows) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(rows);
+        err ? reject(err) : resolve(rows);
       });
     });
   },
@@ -212,10 +218,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       database.all(`SELECT count(*) as total
                     FROM market_opportunity ${where};`, [], (err, rows) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(rows[0].total);
+        err ? reject(err) : resolve(rows[0].total);
       });
     });
   },
@@ -223,10 +226,7 @@ module.exports = {
   async cleanMarketOpportunity() {
     return new Promise((resolve, reject) => {
       database.run('DELETE FROM market_opportunity;', [], (err) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
+        err ? reject(err) : resolve();
       });
     });
   },
@@ -239,10 +239,7 @@ module.exports = {
         opportunities.forEach(o => this.saveMarketOpportunity(o));
 
         database.run('COMMIT;', (err) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve();
+          err ? reject(err) : resolve();
         });
       });
     });
@@ -286,10 +283,7 @@ module.exports = {
   async cleanOrders() {
     return new Promise((resolve, reject) => {
       database.run('DELETE FROM market_order;', [], (err) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
+        err ? reject(err) : resolve();
       });
     });
   },
@@ -306,10 +300,7 @@ module.exports = {
         });
 
         database.run('COMMIT;', (err) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve();
+          err ? reject(err) : resolve();
         });
       });
     });
@@ -323,10 +314,7 @@ module.exports = {
   async saveEntity(sql, attributes) {
     return new Promise((resolve, reject) => {
       database.run(sql, attributes, (err) => {
-        if (err) {
-          reject(err);
-        }
-        resolve();
+        err ? reject(err) : resolve();
       });
     });
   }
