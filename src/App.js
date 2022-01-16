@@ -489,7 +489,7 @@ class App extends Component {
                 <tr>
                   <th>Name</th>
                   <th>Volume</th>
-                  <th title={this.state.savedElements.reduce((p, v) => p + v.earning, 0)}>Profit&#182;</th>
+                  <th title={this.state.savedElements.reduce((p, v) => p + v.earning, 0).toLocaleString()}>Profit&#182;</th>
                   <th>Investment</th>
                   <th>available/requested</th>
                   <th>Sell cost</th>
