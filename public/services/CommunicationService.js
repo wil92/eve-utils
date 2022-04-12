@@ -43,6 +43,8 @@ module.exports = (window) => {
         await syncDataService.syncAllData();
         await this.sendTableResult({page: 1});
         logsService.unblock();
+        await dataService.saveValue('firstLaunch', false);
+        window.webContents.send('in-message', {type: 'load-value-response', value: false, key: 'firstLaunch'});
       });
 
       ipcMain.on('remove-opportunity', async (event, data) => {

@@ -1,10 +1,11 @@
 const path = require('path');
 
-const {app, BrowserWindow} = require('electron');
+const {app, BrowserWindow, Menu} = require('electron');
 
 const dataService = require('./services/DataService');
 const logsService = require("./services/LogsService");
 const CommunicationService = require('./services/CommunicationService');
+const menuService = require('./services/menuService');
 
 let communicationService;
 
@@ -22,6 +23,7 @@ app.on('window-all-closed', () => {
 
 async function createAuthWindow() {
   await dataService.initDatabase(app.getPath('appData'));
+  await dataService.createFirstLaunch();
 
   window = new BrowserWindow({
     width: 1350,
@@ -42,7 +44,8 @@ async function createAuthWindow() {
     window.webContents.openDevTools({mode: 'right'});
   }
 
-  window.setMenu(null);
+  const menu = menuService(window);
+  window.setMenu(menu.createMenu());
 
   const auth = await dataService.loadObjValue('auth');
   if (!auth) {

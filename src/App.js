@@ -112,9 +112,22 @@ class App extends Component {
         this.setState({lastSync: data.value});
       }
     });
+    observable.pipe(filter(m => m.type === 'load-value-response')).subscribe((data) => {
+      if (data.key === 'firstLaunch') {
+        console.log(data.value)
+        console.log(!!JSON.parse(data.value));
+        this.setState({firstLaunch: !!JSON.parse(data.value)});
+      }
+    });
+    observable.pipe(filter(m => m.type === 'show-sync-data-dialog')).subscribe((data) => {
+      if (!this.state.showSyncDataModal && !this.state.block) {
+        this.setState({showSyncDataModal: true});
+      }
+    });
 
     sendMessage({type: 'table-data', page: this.state.pagination.page});
     sendMessage({type: 'load-value', key: 'lastSync'});
+    sendMessage({type: 'load-value', key: 'firstLaunch'});
     this.setState({block: true});
 
     this.getRegions();
@@ -324,6 +337,25 @@ class App extends Component {
 
             <div style={{width: '100%'}}/>
 
+            <Modal
+              isOpen={this.state.showSyncDataModal || this.state.firstLaunch}
+              onRequestClose={() => this.setState({showSyncDataModal: false})}
+              style={{content: {...customStyles.content, width: '300px', height: '450px', overflow: 'hidden'}}}>
+              <button className="CloseButton"
+                      onClick={() => this.setState({showSyncDataModal: false})}>x
+              </button>
+              <h3>Sync options</h3>
+              <p>You need to get the EVE online initial data to be able to use the current application.
+                This button allow the application to get from EVE the 'regions', 'systems' and 'constellations'.
+                This can take about 15min, be patient !!!
+              </p>
+              <div>
+                <button className="Button" style={{margin: '10px 0', width: '100%'}}
+                        onClick={() => this.syncAllData()}>sync all data
+                </button>
+              </div>
+            </Modal>
+
             <button className="Button" onClick={() => this.setState({showSyncModal: true})}>sync</button>
             <Modal
               isOpen={this.state.showSyncModal}
@@ -332,7 +364,10 @@ class App extends Component {
               <button className="CloseButton"
                       onClick={() => this.setState({showSyncModal: false})}>x
               </button>
-              <h3>Sync options</h3>
+              <h3>Sync orders</h3>
+              <p>All the operation made in the application are done with the locally stored information.
+                If you want to get up to date information, you need to synchronize it.
+                For that propose you have this option, that synchronize all the orders in a defined region.</p>
               <div style={{display: 'flex', flexDirection: 'column'}}>
                 <label htmlFor="selectRegionsToGetOrders">Select regions to get orders</label>
                 <Select
@@ -349,12 +384,6 @@ class App extends Component {
                 />
                 <button className="Button" style={{margin: '10px 0', width: '100%'}}
                         onClick={() => this.syncAllOrders()}>sync orders
-                </button>
-              </div>
-              <div style={{height: '1px', width: '100%', backgroundColor: 'hsl(0, 0%, 80%)', margin: '10px 0'}}/>
-              <div>
-                <button className="Button" style={{margin: '10px 0', width: '100%'}}
-                        onClick={() => this.syncAllData()}>sync all data
                 </button>
               </div>
             </Modal>

@@ -155,6 +155,13 @@ module.exports = {
     });
   },
 
+  async createFirstLaunch() {
+    const result = await this.loadValue('firstLaunch');
+    if (result === null) {
+      await this.saveValue('firstLaunch', true);
+    }
+  },
+
   getOrders(regions, callback, end) {
     let sql = 'SELECT * FROM market_order;';
     if (+regions[0] !== -1) {
