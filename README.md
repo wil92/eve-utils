@@ -15,6 +15,14 @@ Calculate the best market opportunities in the game [EVE online](https://www.eve
 
 > Note: SQLite is used in the application
 
+## Deploy new version
+
+1. Update the application version in the package.json file
+2. Create a new tag with the version number
+3. Push the tag to the remote repository
+
+> Note: After this 3 steps the GitHub actions will do all the magic by itself 
+
 ## License
 
 - [MIT](./LICENSE.md)
