@@ -13,6 +13,16 @@
     }
 }
 
+.react-tabs {
+    width: 100%;
+    min-height: 100vh;
+}
+
+.react-tabs__tab-list {
+    text-align: start;
+    font-size: 12px;
+}
+
 .App-header {
     background-color: #282c34;
     min-height: 100vh;
