@@ -28,10 +28,6 @@ class System extends Component {
     return (
       <div className="System"
            onMouseDown={this.handleTransform}
-           onMouseUp={this.handleTransform}
-           onMouseMove={this.handleTransform}
-           onMouseLeave={this.handleTransform}
-           onWheel={this.handleTransform}
            style={{left: `${this.state.system.position.x}px`, top: `${this.state.system.position.y}px`, width: `${this.state.system.shape.w}px`, height: `${this.state.system.shape.h}px`}}>
         {this.state.system.info.name}
       </div>

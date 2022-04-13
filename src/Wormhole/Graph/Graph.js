@@ -3,8 +3,14 @@ import {Component} from "react";
 import './Graph.css';
 import System from "./System";
 import {SystemModel, WormholeModel} from "./GraphModels";
+import Path from "./Path";
 
 const scaleDelta = 0.001;
+const marginHeight = 20;
+const marginWidth = 30;
+
+const MAX_SCALE_VALUE = 1.63;
+const MIN_SCALE_VALUE = 0.67;
 
 class Graph extends Component {
 
@@ -17,7 +23,8 @@ class Graph extends Component {
       movement: {x: 0, y: 0},
       isModifying: false,
       systemTree: {},
-      systems: []
+      systems: [],
+      paths: []
     };
 
     this.handleTransform = this.handleTransform.bind(this);
@@ -46,10 +53,12 @@ class Graph extends Component {
 
     this.setState({
       systemTree: n1,
-      systems: [n1, n2, n3, n4, n5, n6, n7]
+      systems: [n1, n2, n3, n4, n5, n6, n7],
+      paths: []
     });
 
     this.calculateTreePositions(n1);
+    this.calculatePaths(n1);
   }
 
   componentWillUnmount() {
@@ -89,10 +98,11 @@ class Graph extends Component {
         isModifying: false
       });
     } else if (event.type === 'wheel' && !this.state.isModifying) {
+      const scale = this.state.position.scale + event.deltaY * -scaleDelta;
       this.setState({
         position: {
           ...this.state.position,
-          scale: this.state.position.scale + event.deltaY * -scaleDelta
+          scale: Math.max(Math.min(scale, MAX_SCALE_VALUE), MIN_SCALE_VALUE)
         }
       });
     }
@@ -115,6 +125,30 @@ class Graph extends Component {
     });
   }
 
+  calculatePaths(system) {
+    const paths = [];
+
+    this.bfsOverTree(system, (ele) => {
+      for (let i = 0; i < ele.wormholes.length; i++) {
+        paths.push(this.buildPathInBetween(ele, ele.wormholes[i].destination));
+      }
+    });
+
+    this.setState({paths});
+  }
+
+  buildPathInBetween(systemParent, systemChild) {
+    const position = {
+      x: Math.min(systemParent.getCenter().x, systemChild.getCenter().x),
+      y: Math.min(systemParent.getCenter().y, systemChild.getCenter().y)
+    };
+    const shape = {
+      w: Math.max(Math.abs(systemParent.getCenter().x - systemChild.getCenter().x), 4),
+      h: Math.abs(systemParent.getCenter().y - systemChild.getCenter().y)
+    };
+    return {position, shape, invert: systemParent.position.x < systemChild.position.x};
+  }
+
   bfsOverTree(system, callback) {
     const queue = [system];
     while (queue.length > 0) {
@@ -132,9 +166,6 @@ class Graph extends Component {
    * @param offsetY {number}
    */
   calculateTree(system, offsetX, offsetY) {
-    const marginHeight = 20;
-    const marginWidth = 20;
-
     let middleX = offsetX + marginWidth + system.shape.w;
     let offsetToReturn = middleX;
 
@@ -165,6 +196,12 @@ class Graph extends Component {
            onWheel={this.handleTransform}>
         <div className="GraphContainer"
              style={{transform: `translate(${this.state.position.x + this.state.movement.x}px, ${this.state.position.y + this.state.movement.y}px) scale(${this.state.position.scale})`}}>
+          {this.state.paths.map((path, index) => (
+            <Path key={index}
+                  invert={path.invert}
+                  position={path.position}
+                  shape={path.shape}/>
+          ))}
           {this.state.systems.map((system, index) => (
             <System key={index}
                     system={system}/>

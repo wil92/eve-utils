@@ -1,6 +1,22 @@
 .System {
-    background: blue;
+    /*background: blue;*/
     position: absolute;
     overflow: hidden;
     font-size: 10px;
+    padding-left: 10px;
+    margin-left: -10px;
+    padding-right: 10px;
+    margin-right: -10px;
+}
+
+.System:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -10px;
+    bottom: -10px;
+    background: #4f4f5c;
+    border-radius: 50%;
+    z-index: -1;
 }
