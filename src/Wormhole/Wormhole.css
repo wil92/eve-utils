@@ -1,4 +1,17 @@
+.Wormhole {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: calc(100% - 40px);
+}
+
+.Head, .Body {
+    height: 50%;
+    overflow: hidden;
+}
+
 .table-anomalies {
     width: 100%;
     max-width: calc(100% - 10px);
+    min-width: auto;
 }

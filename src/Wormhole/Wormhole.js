@@ -4,6 +4,7 @@ import './Wormhole.css';
 import {observable} from "../services/MessageHandler";
 import {ANOMALY_TYPE_WORMHOLE, LexicoAnalyser} from "../services/AnomalyInterpreter";
 import moment from "moment";
+import Graph from "./Graph/Graph";
 
 class Wormhole extends Component {
 
@@ -42,6 +43,7 @@ class Wormhole extends Component {
           <button onClick={() => this.copyFromClipBoard()}>copy from clipboard</button>
           <table className="table-anomalies">
             <thead>
+
             <tr>
               <th>ID</th>
               <th>Type</th>
@@ -53,7 +55,7 @@ class Wormhole extends Component {
             </thead>
             <tbody>
             {this.state.systemAnomalies.map((anomaly, index) => anomaly.type === ANOMALY_TYPE_WORMHOLE ?
-              (<tr>
+              (<tr key={index}>
                 <td>{anomaly.id}</td>
                 <td>{anomaly.type}</td>
                 <td>{moment(anomaly.createdAt).fromNow()}</td>
@@ -61,7 +63,7 @@ class Wormhole extends Component {
                 <td>{anomaly.life}</td>
                 <td>{anomaly.mass}</td>
               </tr>) :
-              (<tr>
+              (<tr key={index}>
                 <td>{anomaly.id}</td>
                 <td>{anomaly.type}</td>
                 <td>{moment(anomaly.createdAt).fromNow()}</td>
@@ -71,7 +73,9 @@ class Wormhole extends Component {
             </tbody>
           </table>
         </div>
-        <div className="Body"></div>
+        <div className="Body">
+          <Graph/>
+        </div>
       </div>
     );
   }

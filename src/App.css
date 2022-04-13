@@ -23,6 +23,11 @@
     font-size: 12px;
 }
 
+.react-tabs__tab-panel--selected {
+    display: grid !important;
+    overflow: hidden;
+}
+
 .App-header {
     background-color: #282c34;
     min-height: 100vh;

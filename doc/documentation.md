@@ -1,6 +1,27 @@
 # Documentation
 
+This is a dev documentation about the current application. You can find here important information that can help with the understanding of the code.
+
 ## Read anomalies from clipboard
+
+Information related to the code used for interpreting the list of anomalies copied from EVE online.
+
+**Relevant classes:**
+
+- TBD
+
+### Example text
+
+```
+FOM-167	Cosmic Signature			0.0%	8.12 AU
+GCJ-920	Cosmic Anomaly	Combat Site	Perimeter Checkpoint	100.0%	5.26 AU
+JCY-551	Cosmic Signature	Wormhole	Unstable Wormhole	100.0%	7.60 AU
+SED-954	Cosmic Signature	Data Site	Unsecured Perimeter Transponder Farm 	100.0%	6.74 AU
+HBE-668	Cosmic Signature	Gas Site		50.5%	28.62 AU
+MLO-018	Cosmic Signature			0.0%	41.73 AU
+```
+
+> Note: the spaces between the information is with \t
 
 ### Syntactical Analysis
 
@@ -26,3 +47,11 @@ endl-token
 
 <line> = <line1> | <line2> | <line3>
 ```
+
+## Update database script
+
+This is a script that take the information out of the latest version of EVE online databases and update the database use in the application.
+
+### Steps to update the database
+
+tbd
