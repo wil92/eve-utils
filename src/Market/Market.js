@@ -514,37 +514,37 @@ class Market extends Component {
               <tbody>
               {this.state.savedElements.map((op, index) => (
                 <tr className={'savedItems ' + (op.applied ? 'applied' : '')} key={index}>
-                  <th title={`seller_id:${op['seller_id']} / buyer_id:${op['buyer_id']}`}
+                  <td title={`seller_id:${op['seller_id']} / buyer_id:${op['buyer_id']}`}
                       onDoubleClick={() => this.copyToClipboard(op.name)}>{op.name} {op.iconId &&
-                  <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
-                  <th
-                    onDoubleClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;/{Math.round(op.volume * Math.min(op.available, op.requested) * 100) / 100}m&#179;</th>
-                  <th className="thinline"
+                  <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</td>
+                  <td
+                    onDoubleClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;/{Math.round(op.volume * Math.min(op.available, op.requested) * 100) / 100}m&#179;</td>
+                  <td className="thinline"
                       onDoubleClick={() => this.copyToClipboard(op.earning)}>&asymp; {op.earning.toLocaleString()} ISK
-                  </th>
-                  <th className="thinline"
+                  </td>
+                  <td className="thinline"
                       onDoubleClick={() => this.copyToClipboard(op.investment)}>{op.investment.toLocaleString()} ISK
-                  </th>
-                  <th
-                    onDoubleClick={() => this.copyToClipboard(Math.min(op.requested, op.available))}>{op.available}/{op.requested}</th>
-                  <th className="thinline"
+                  </td>
+                  <td
+                    onDoubleClick={() => this.copyToClipboard(Math.min(op.requested, op.available))}>{op.available}/{op.requested}</td>
+                  <td className="thinline"
                       onDoubleClick={() => this.copyToClipboard(op.sell)}>{op.sell.toLocaleString()} ISK
-                  </th>
-                  <th className="thinline"
+                  </td>
+                  <td className="thinline"
                       onDoubleClick={() => this.copyToClipboard(op.buy)}>{op.buy.toLocaleString()} ISK
-                  </th>
-                  <th title={op['seller_place_id']}
-                      onDoubleClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
-                  <th title={op['buyer_place_id']}
-                      onDoubleClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
-                  <th onDoubleClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</th>
-                  <th onDoubleClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</th>
-                  <th className="thinline">
+                  </td>
+                  <td title={op['seller_place_id']}
+                      onDoubleClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</td>
+                  <td title={op['buyer_place_id']}
+                      onDoubleClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</td>
+                  <td onDoubleClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</td>
+                  <td onDoubleClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</td>
+                  <td className="thinline">
                     <button onClick={() => this.applyElement(op)}
                             title={op.applied ? 'unapply' : 'apply'}>{op.applied ? <span>&#9746;</span> :
                       <span>&#9745;</span>}</button>
                     <button onClick={() => this.saveElement(op)} title="unsave">-</button>
-                  </th>
+                  </td>
                 </tr>
               ))}
               </tbody>
@@ -573,32 +573,32 @@ class Market extends Component {
           <tbody>
           {this.state.opportunities.map((op, index) => (
             <tr className={savedElem.has(this.elementHash(op)) ? 'selected' : 'mainItems'} key={index}>
-              <th title={`seller_id:${op['seller_id']} / buyer_id:${op['buyer_id']}`}
+              <td title={`seller_id:${op['seller_id']} / buyer_id:${op['buyer_id']}`}
                   onDoubleClick={() => this.copyToClipboard(op.name)}>{op.name} {(op.iconId) &&
-              <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</th>
-              <th
-                onDoubleClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;/{Math.round(op.volume * Math.min(op.available, op.requested) * 100) / 100}m&#179;</th>
-              <th className="thinline"
+              <Img className="icon" src={`https://images.evetech.net/types/${op.iconId}/icon`}/>}</td>
+              <td
+                onDoubleClick={() => this.copyToClipboard(op.volume)}>{op.volume}m&#179;/{Math.round(op.volume * Math.min(op.available, op.requested) * 100) / 100}m&#179;</td>
+              <td className="thinline"
                   onDoubleClick={() => this.copyToClipboard(op.earning)}>&asymp; {op.earning.toLocaleString()} ISK
-              </th>
-              <th className="thinline"
+              </td>
+              <td className="thinline"
                   onDoubleClick={() => this.copyToClipboard(op.investment)}>{op.investment.toLocaleString()} ISK
-              </th>
-              <th
-                onDoubleClick={() => this.copyToClipboard(Math.min(op.requested, op.available))}>{op.available}/{op.requested}</th>
-              <th className="thinline"
+              </td>
+              <td
+                onDoubleClick={() => this.copyToClipboard(Math.min(op.requested, op.available))}>{op.available}/{op.requested}</td>
+              <td className="thinline"
                   onDoubleClick={() => this.copyToClipboard(op.sell)}>{op.sell.toLocaleString()} ISK
-              </th>
-              <th className="thinline"
+              </td>
+              <td className="thinline"
                   onDoubleClick={() => this.copyToClipboard(op.buy)}>{op.buy.toLocaleString()} ISK
-              </th>
-              <th title={op['seller_place_id']}
-                  onDoubleClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</th>
-              <th title={op['buyer_place_id']}
-                  onDoubleClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</th>
-              <th onDoubleClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</th>
-              <th onDoubleClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</th>
-              <th className="thinline">
+              </td>
+              <td title={op['seller_place_id']}
+                  onDoubleClick={() => this.copyToClipboard(op['seller_place'])}>{op['seller_place']}</td>
+              <td title={op['buyer_place_id']}
+                  onDoubleClick={() => this.copyToClipboard(op['buyer_place'])}>{op['buyer_place']}</td>
+              <td onDoubleClick={() => this.copyToClipboard(op.jumps)}>{op.jumps}</td>
+              <td onDoubleClick={() => this.copyToClipboard(op.securityStatus)}>{op.securityStatus}</td>
+              <td className="thinline">
                 <button className="Button ButtonAction"
                         onClick={() => this.saveElement(op)}
                         title={savedElem.has(this.elementHash(op)) ? 'unsave' : 'save'}>
@@ -607,7 +607,7 @@ class Market extends Component {
                 <button className="Button ButtonAction"
                         onClick={() => this.deleteOpportunity(op.id)} title="remove">x
                 </button>
-              </th>
+              </td>
             </tr>
           ))}
           </tbody>
