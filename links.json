@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "links": [
+    {
+      "name": "Uncommon Core Deposit",
+      "url": "https://eve-survival.org/wikka.php?wakka=UncommonCoreDeposit"
+    },
+    {
+      "name": "Perimeter Hangar",
+      "url": "https://eve-survival.org/wikka.php?wakka=PerimeterHangar"
+    },
+    {
+      "name": "Perimeter Checkpoint",
+      "url": "https://eve-survival.org/wikka.php?wakka=PerimeterCheckpoint"
+    },
+    {
+      "name": "Isolated Core Deposit",
+      "url": "https://eve-survival.org/wikka.php?wakka=IsolatedCoreDeposit"
+    },
+    {
+      "name": "Unexceptional Frontier Deposit",
+      "url": "https://eve-survival.org/wikka.php?wakka=UnexceptionalFrontierDeposit"
+    }
+  ]
+}
