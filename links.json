@@ -1,21 +1,25 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "links": [
     {
-      "name": "Uncommon Core Deposit",
-      "url": "https://eve-survival.org/wikka.php?wakka=UncommonCoreDeposit"
+      "name": "Angel Hidden Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=AngelHiddenHideaway"
     },
     {
-      "name": "Perimeter Hangar",
-      "url": "https://eve-survival.org/wikka.php?wakka=PerimeterHangar"
+      "name": "Isolated Core Deposit",
+      "url": "https://eve-survival.org/wikka.php?wakka=IsolatedCoreDeposit"
     },
     {
       "name": "Perimeter Checkpoint",
       "url": "https://eve-survival.org/wikka.php?wakka=PerimeterCheckpoint"
     },
     {
-      "name": "Isolated Core Deposit",
-      "url": "https://eve-survival.org/wikka.php?wakka=IsolatedCoreDeposit"
+      "name": "Perimeter Hangar",
+      "url": "https://eve-survival.org/wikka.php?wakka=PerimeterHangar"
+    },
+    {
+      "name": "Uncommon Core Deposit",
+      "url": "https://eve-survival.org/wikka.php?wakka=UncommonCoreDeposit"
     },
     {
       "name": "Unexceptional Frontier Deposit",
