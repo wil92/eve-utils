@@ -1,3 +1,4 @@
+const fs = require('fs');
 const rp = require('request-promise');
 
 const REQUEST_X_SECOND_LIMIT = 20;
@@ -11,6 +12,25 @@ module.exports = {
   JSON_RESPONSE: 1,
   TEXT_RESPONSE: 2,
   lastRequestTime: 0,
+
+  async utilsGET(url) {
+    return rp({
+      method: 'GET',
+      url: url
+    }).then(res => {
+      return JSON.parse(res);
+    });
+  },
+
+  async utilsDownload(url, pathToSave) {
+    return rp({
+      method: 'GET',
+      encoding: null,
+      url: url,
+    }).then(res => {
+      fs.writeFileSync(pathToSave, res);
+    });
+  },
 
   async get(url, token, responseFormat = 1) {
     await this.requestTimeLimitation();
@@ -46,7 +66,7 @@ module.exports = {
         });
       });
       result = [...result, ...resValues];
-    } while(page < pages);
+    } while (page < pages);
     return result;
   },
 
@@ -63,7 +83,7 @@ module.exports = {
         res = null;
         await sleep(2000);
       }
-    } while(!res && tries < maxTries);
+    } while (!res && tries < maxTries);
     return res;
   },
 

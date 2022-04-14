@@ -3,6 +3,7 @@ const path = require("path");
 
 const sqlite = require('sqlite3').verbose();
 
+const httpService = require('./HttpService');
 const databaseName = 'data.db';
 
 let database;
@@ -14,7 +15,10 @@ module.exports = {
     console.log(dbPath);
 
     if (!fs.existsSync(dbPath)) {
-      // toDo 14.04.22, guille, download db from server
+      const versionsUrl = `https://eveutils.guilledev.com/db-versions`;
+      const versions = await httpService.utilsGET(versionsUrl);
+      const downloadUrl = `https://eveutils.guilledev.com/download/${versions[0]}`;
+      await httpService.utilsDownload(downloadUrl, dbPath);
     }
     database = new sqlite.Database(dbPath);
   },

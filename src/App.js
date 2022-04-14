@@ -45,12 +45,12 @@ class App extends Component {
   componentDidMount() {
     observable.pipe(filter(m => m.type === 'load-value-response')).subscribe((data) => {
       if (data.key === 'firstLaunch') {
-        this.setState({firstLaunch: !!JSON.parse(data.value)});
+        // this.setState({firstLaunch: !!JSON.parse(data.value)});
       }
     });
     observable.pipe(filter(m => m.type === 'show-sync-data-dialog')).subscribe((data) => {
       if (!this.state.showSyncDataModal && !this.state.block) {
-        this.setState({showSyncDataModal: true});
+        // this.setState({showSyncDataModal: true});
       }
     });
 

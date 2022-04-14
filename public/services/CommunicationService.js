@@ -9,6 +9,7 @@ const logsService = require("./LogsService");
 const ordersService = require("./AnalyseOrdersService");
 const AuthService = require("./AuthService");
 const SyncDataService = require('./SyncDataService');
+const http = require('./HttpService');
 const config = require("./config");
 
 const authService = AuthService(config);
@@ -84,6 +85,14 @@ module.exports = (window) => {
       ipcMain.on('get-regions', async (event, data) => {
         const regions = await dataService.getAllRegions();
         window.webContents.send('in-message', {type: 'get-regions-response', regions, id: data.id});
+      });
+
+      ipcMain.on('get-current-location', async (event, data) => {
+        const authData = await dataService.loadObjValue('auth');
+        const userInfo = await authService.getUserInfo(authData['access_token']);
+        const url = `${config.apiEndpoint}/v2/characters/${userInfo['CharacterID']}/location/`;
+        const currentLocation = await http.get(url, authData['access_token']);
+        window.webContents.send('in-message', {type: 'get-current-location-response', currentLocation, id: data.id});
       });
 
       ipcMain.on('get-security-status', async (event, data) => {

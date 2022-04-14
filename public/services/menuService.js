@@ -15,11 +15,11 @@ module.exports = (window) => ({
       {
         label: 'App',
         submenu: [
-          {
-            role: 'syncData', label: 'Sync data', click: async () => {
-              window.webContents.send('in-message', {type: 'show-sync-data-dialog'});
-            }
-          },
+          // {
+          //   role: 'syncData', label: 'Sync data', click: async () => {
+          //     window.webContents.send('in-message', {type: 'show-sync-data-dialog'});
+          //   }
+          // },
           {type: 'separator'},
           {role: 'quit', label: 'Quit'}
         ]

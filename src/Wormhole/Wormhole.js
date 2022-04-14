@@ -40,6 +40,7 @@ class Wormhole extends Component {
     return (
       <div className="Wormhole">
         <div className="Head">
+          <div>current location</div>
           <button onClick={() => this.copyFromClipBoard()}>copy from clipboard</button>
           <table className="table-anomalies">
             <thead>
