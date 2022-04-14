@@ -45,7 +45,8 @@
     "server": "node server.js",
     "dist": "npm run build && electron-builder --linux --win",
     "dist:linux": "npm run build && electron-builder --linux",
-    "dist:win": "npm run build && electron-builder --win"
+    "dist:win": "npm run build && electron-builder --win",
+    "db": "extra/updateDB.js"
   },
   "eslintConfig": {
     "extends": [

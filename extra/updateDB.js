@@ -1,20 +1,71 @@
+#!/usr/bin/env node
+
 const fs = require('fs');
 const path = require("path");
 const sqlite = require('sqlite3').verbose();
-const initialScriptArray = require('./createDB');
+const shell = require('vorpal')();
 
-let database;
+const initialScriptArray = require('./createDBScript');
+let isVerbose = false;
 
-let databaseName = 'data.db';
+function queryEACH(db, sql, attributes, callback, complete) {
+  db.each(sql, attributes, (err, row) => {
+    err ? complete(err) : (row ? callback(row) : callback(null));
+  }, complete);
+}
 
-async function initDatabase() {
-  const dbPath = path.join(__dirname, databaseName);
-  console.log(dbPath);
+async function queryEACHCall(database, ccpDatabase, sql, insertFun) {
+  return new Promise((resolve, reject) => {
+    database.serialize(() => {
+      database.run('BEGIN;');
 
-  database = new sqlite.Database(dbPath);
+      let cont = 0;
+      let readingFinish = false;
+      queryEACH(ccpDatabase, sql, [], (row) => {
+        cont++;
+        insertFun(row, (err) => {
+          if (err) {
+            console.error(err)
+            return reject(err);
+          }
+          cont--;
+          if (cont === 0 && readingFinish) {
+            database.run('COMMIT;', (err) => {
+              err ? reject(err) : resolve();
+            });
+          }
+        });
+      }, (err) => {
+        if (err) {
+          console.error(err);
+          return reject(err);
+        }
+        readingFinish = true;
+      });
+    });
+  });
+}
 
-  return initialScriptArray.reduce((p, sql) => {
-    console.log(sql);
+async function syncAction(database, ccpDatabase, tableLocal, paramsLocal, tableCCP, paramsCCP) {
+  const paramsRes = paramsLocal.reduce((p, v, i) => i ? `${p}, ${v}` : v, '');
+  const paramsExtra = paramsLocal.reduce((p, v, i) => i ? `${p}, ?` : '?', '');
+  const sql = `INSERT INTO ${tableLocal} (${paramsRes}) VALUES (${paramsExtra});`;
+  await queryEACHCall(database, ccpDatabase, `SELECT * FROM ${tableCCP};`, (row, next) => {
+    database.run(sql, paramsCCP.map(pa => row[pa]), next);
+  });
+}
+
+async function initDatabase(ccpDB, version) {
+  const dbPath = path.join(__dirname, `${version}.data.db`);
+
+  if (fs.existsSync(dbPath)) {
+    fs.unlinkSync(dbPath);
+  }
+
+  const database = new sqlite.Database(dbPath);
+
+  await initialScriptArray.reduce((p, sql) => {
+    isVerbose && console.log(sql);
     return p.then(() => {
       return new Promise((resolve, reject) => {
         database.run(sql, (err) => {
@@ -26,8 +77,53 @@ async function initDatabase() {
       });
     })
   }, Promise.resolve());
+
+  const ccpDatabase = new sqlite.Database(ccpDB);
+
+  // EVE_TYPE TABLE
+  isVerbose && console.log('Start eve_type table synchronization');
+  await syncAction(database, ccpDatabase,
+    'eve_type', ['id', 'name', 'description', 'capacity', 'mass', 'volume'],
+    'invTypes', ['typeID', 'typeName', 'description', 'capacity', 'mass', 'volume']);
+
+  // REGION TABLE
+  isVerbose && console.log('Start region table synchronization');
+  await syncAction(database, ccpDatabase,
+    'region', ['id', 'name'],
+    'mapRegions', ['regionID', 'regionName']);
+
+  // CONSTELLATION TABLE
+  isVerbose && console.log('Start constellation table synchronization');
+  await syncAction(database, ccpDatabase,
+    'constellation', ['id', 'name', 'region_id'],
+    'mapRegions', ['constellationID', 'constellationName', 'regionID']);
+
+  // SYSTEM TABLE
+  isVerbose && console.log('Start system table synchronization');
+  await syncAction(database, ccpDatabase,
+    'system', ['id', 'name', 'security_status', 'security_class', 'constellation_id', 'region_id'],
+    'mapSolarSystems', ['solarSystemID', 'solarSystemName', 'security', 'securityClass', 'constellationID', 'regionID']);
+
+  // STATION TABLE
+  isVerbose && console.log('Start station table synchronization');
+  await syncAction(database, ccpDatabase,
+    'station', ['id', 'name', 'office_rental_cost', 'reprocessing_efficiency', 'reprocessing_stations_take', 'system_id', 'type_id'],
+    'staStations', ['stationID', 'stationName', 'officeRentalCost', 'reprocessingEfficiency', 'reprocessingStationsTake', 'solarSystemID', 'stationTypeID']);
+
+  // CLOSE DATABASES CONNECTION
+  await new Promise((resolve, reject) => database.close((err) => err ? reject(err) : resolve()));
+  await new Promise((resolve, reject) => ccpDatabase.close((err) => err ? reject(err) : resolve()));
 }
 
-function showHelp() {
+shell
+  .command('gendb <ccpDBPath> <dbVersion>')
+  .option('-v, --verbose', 'Show all not relevant logs.')
+  .description('Generate the new database version, base in the CCP database information.')
+  .action((args, cb) => {
+    isVerbose = args.options['verbose'];
+    initDatabase(args['ccpDBPath'], args['dbVersion']).then(() => cb());
+  });
 
-}
+shell
+  .delimiter('db-script$')
+  .show();

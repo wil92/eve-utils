@@ -13,27 +13,10 @@ module.exports = {
     const dbPath = path.join(savePath, databaseName);
     console.log(dbPath);
 
-    const isNewDB = !fs.existsSync(dbPath);
-    database = new sqlite.Database(dbPath);
-
-    if (isNewDB) {
+    if (!fs.existsSync(dbPath)) {
       // toDo 14.04.22, guille, download db from server
-      const initialScriptArray = require('../../extra/createDB');
-
-      return initialScriptArray.reduce((p, sql) => {
-        console.log(sql);
-        return p.then(() => {
-          return new Promise((resolve, reject) => {
-            database.run(sql, (err) => {
-              if (err) {
-                return reject(err);
-              }
-              resolve();
-            });
-          });
-        })
-      }, Promise.resolve());
     }
+    database = new sqlite.Database(dbPath);
   },
 
   async loadObjValue(key) {
