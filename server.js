@@ -20,7 +20,7 @@ function linksController(req, res) {
 
 function dbVersionController(req, res) {
   const result = fs.readdirSync(downloadFolder).filter(function (file) {
-    return file.endsWith('.sqlite')
+    return file.endsWith('.sqlite') || file.endsWith('.db');
   });
   res.writeHead(200, {'Content-Type': 'application/json'});
   res.end(JSON.stringify(result), 'utf-8');
