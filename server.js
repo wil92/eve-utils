@@ -48,7 +48,7 @@ const requestListener = function (req, res) {
     downloadDBController(req, res);
     return;
   }
-  if (req.url === '/db-version') {
+  if (req.url === '/db-versions') {
     dbVersionController(req, res);
     return;
   }
