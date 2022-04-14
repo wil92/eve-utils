@@ -17,7 +17,8 @@ module.exports = {
     database = new sqlite.Database(dbPath);
 
     if (isNewDB) {
-      const initialScriptArray = require('./createDB');
+      // toDo 14.04.22, guille, download db from server
+      const initialScriptArray = require('../../extra/createDB');
 
       return initialScriptArray.reduce((p, sql) => {
         console.log(sql);

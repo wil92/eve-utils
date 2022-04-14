@@ -97,5 +97,24 @@ module.exports = [
        seller_id INTEGER,
        FOREIGN KEY (buyer_id) REFERENCES market_order (id),
        FOREIGN KEY (seller_id) REFERENCES market_order (id)
+   );`,
+
+  `CREATE TABLE wormhole
+   (
+       id   INTEGER PRIMARY KEY AUTOINCREMENT,
+       life TEXT,
+       mass TEXT,
+       FOREIGN KEY (system_from) REFERENCES system (id),
+       FOREIGN KEY (system_to) REFERENCES system (id)
    );`
+
+    `CREATE TABLE anomaly
+     (
+         id         INTEGER PRIMARY KEY AUTOINCREMENT,
+         name       TEXT,
+         type       TEXT,
+         expiration INTEGER,
+         FOREIGN KEY (system_id) REFERENCES system (id)
+     );`
+
 ];
