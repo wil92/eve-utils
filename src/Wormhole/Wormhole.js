@@ -1,10 +1,11 @@
 import {Component} from "react";
+import moment from "moment";
 
 import './Wormhole.css';
-import {observable} from "../services/MessageHandler";
+import {observable, sendMessage} from "../services/MessageHandler";
 import {ANOMALY_TYPE_WORMHOLE, LexicoAnalyser} from "../services/AnomalyInterpreter";
-import moment from "moment";
 import Graph from "./Graph/Graph";
+import {filter} from "rxjs";
 
 class Wormhole extends Component {
 
@@ -17,17 +18,16 @@ class Wormhole extends Component {
   }
 
   componentDidMount() {
-    // this.subscription = observable.subscribe(message => {
-    //   if (message.type === 'log-response') {
-    //     this.addNewLog(message.message);
-    //   } else if (message.type === 'unblock-response') {
-    //     this.setState({logs: []});
-    //   }
-    // });
+    this.subscription = observable.pipe(filter(m => m.type === 'get-current-location-response')).subscribe(message => {
+      console.log(message.location);
+    });
+
+    console.log('aaa')
+    sendMessage({type: 'get-current-location'});
   }
 
   componentWillUnmount() {
-    // this.subscription.unsubscribe();
+    this.subscription.unsubscribe();
   }
 
   async copyFromClipBoard() {

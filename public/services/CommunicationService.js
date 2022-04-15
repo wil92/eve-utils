@@ -92,7 +92,10 @@ module.exports = (window) => {
         const userInfo = await authService.getUserInfo(authData['access_token']);
         const url = `${config.apiEndpoint}/v2/characters/${userInfo['CharacterID']}/location/`;
         const currentLocation = await http.get(url, authData['access_token']);
-        window.webContents.send('in-message', {type: 'get-current-location-response', currentLocation, id: data.id});
+        const currentSystem = dataService.getSystemById(currentLocation['solar_system_id']);
+        window.webContents.send('in-message', {
+          type: 'get-current-location-response', location: {system: currentSystem}, id: data.id
+        });
       });
 
       ipcMain.on('get-security-status', async (event, data) => {

@@ -83,6 +83,14 @@ module.exports = {
     });
   },
 
+  async getSystemById(systemId) {
+    return new Promise((resolve, reject) => {
+      database.get('SELECT * FROM system WHERE id=?', [systemId], (err, row) => {
+        err ? reject(err) : resolve(row);
+      });
+    });
+  },
+
   async loadNumValue(key) {
     const res = await this.loadValue(key);
     return res ? +res : null;
