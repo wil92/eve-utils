@@ -3,13 +3,15 @@ const path = require("path");
 
 const {ipcMain, app} = require("electron");
 const moment = require("moment");
+const {filter} = require("rxjs");
 
 const dataService = require("./DataService");
 const logsService = require("./LogsService");
 const ordersService = require("./AnalyseOrdersService");
+const locationService = require('./LocationService');
 const AuthService = require("./AuthService");
 const SyncDataService = require('./SyncDataService');
-const http = require('./HttpService');
+const periodService = require("./PeriodicTasksService");
 const config = require("./config");
 
 const authService = AuthService(config);
@@ -21,6 +23,12 @@ module.exports = (window) => {
     window,
 
     registerMessages() {
+      periodService.getObservable().pipe(
+        filter(val => val % 2 === 0)
+      ).subscribe(() => {
+        this.refreshToken().then(() => this.getCurrentLocation());
+      });
+
       ipcMain.on('refresh-token', async (evt, data) => {
         await this.refreshToken(data.id);
       });
@@ -88,14 +96,15 @@ module.exports = (window) => {
       });
 
       ipcMain.on('get-current-location', async (event, data) => {
-        const authData = await dataService.loadObjValue('auth');
-        const userInfo = await authService.getUserInfo(authData['access_token']);
-        const url = `${config.apiEndpoint}/v2/characters/${userInfo['CharacterID']}/location/`;
-        const currentLocation = await http.get(url, authData['access_token']);
-        const currentSystem = dataService.getSystemById(currentLocation['solar_system_id']);
-        window.webContents.send('in-message', {
-          type: 'get-current-location-response', location: {system: currentSystem}, id: data.id
-        });
+        await this.getCurrentLocation(data.id);
+      });
+
+      ipcMain.on('save-anomalies', async (event, data) => {
+
+      });
+
+      ipcMain.on('load-anomalies', async (event, data) => {
+        window.webContents.send('in-message', {type: 'get-security-status-response', securityStatus, id: data.id});
       });
 
       ipcMain.on('get-security-status', async (event, data) => {
@@ -113,6 +122,13 @@ module.exports = (window) => {
         await this.refreshToken();
         const userInfo = await authService.getUserInfo(authData['access_token']);
         window.webContents.send('in-message', {type: 'user-info-response', userInfo, id: data.id});
+      });
+    },
+
+    async getCurrentLocation(responseId) {
+      const currentSystem = await locationService.getCurrentLocation();
+      window.webContents.send('in-message', {
+        type: 'get-current-location-response', location: {system: currentSystem}, id: responseId
       });
     },
 
@@ -140,8 +156,10 @@ module.exports = (window) => {
     },
 
     async logout() {
+      periodService.stopTimer();
       await dataService.saveValue('auth', null);
       await dataService.saveValue('expire', null);
+      await dataService.saveValue('user_info', null);
       await this.openLoginPage();
     },
 
@@ -150,12 +168,20 @@ module.exports = (window) => {
 
       window.webContents.on('did-redirect-navigation', async (event, newUrl) => {
         await authService.requestAccessCode(newUrl);
+        await this.getUserInfo();
         await this.openApp();
         await this.updateTokenInUI();
       });
     },
 
+    async getUserInfo() {
+      const authData = await dataService.loadObjValue('auth');
+      const userInfo = await authService.getUserInfo(authData['access_token']);
+      await dataService.saveValue('user_info', userInfo);
+    },
+
     async openApp() {
+      periodService.startTimer();
       return window.loadURL(
         isDev
           ? 'http://localhost:3000'

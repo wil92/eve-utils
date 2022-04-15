@@ -39,7 +39,7 @@ module.exports = {
 
     let orderIdToUpdate = 0;
     let remain = 0;
-    if (opportunity.available - opportunity.requested  > 0) {
+    if (opportunity.available - opportunity.requested > 0) {
       orderIdToUpdate = opportunity['seller_id'];
       remain = opportunity.available - opportunity.requested;
     } else if (opportunity.available - opportunity.requested < 0) {
@@ -60,7 +60,9 @@ module.exports = {
     await new Promise((resolve, reject) => {
       database.serialize(() => {
         database.run('DELETE FROM market_opportunity WHERE id=?;', [opportunityId]);
-        database.run(`DELETE FROM market_order WHERE ${where};`, ordersIdsToRemove, (err) => {
+        database.run(`DELETE
+                      FROM market_order
+                      WHERE ${where};`, ordersIdsToRemove, (err) => {
           err ? reject(err) : resolve();
         });
       });
@@ -146,6 +148,30 @@ module.exports = {
       const data = typeof value === "object" ? JSON.stringify(value) : value;
       database.run(`INSERT
       OR REPLACE INTO config (key, data) VALUES(?, ?)`, [key, data], function (err) {
+        err ? reject(err) : resolve();
+      });
+    });
+  },
+
+  /**
+   * @param anomalies {{id: string, createdAt: number, name: string, category: number, type: number}[]}
+   * @return {Promise<void>}
+   */
+  async saveAnomalies(anomalies) {
+    for (let i = 0; i < anomalies.length; i++) {
+      await this.saveAnomaly(anomalies[i]);
+    }
+  },
+
+  /**
+   * @param anomaly {{id: string, createdAt: number, name: string, category: number, type: number}}
+   * @return {Promise<unknown>}
+   */
+  async saveAnomaly(anomaly) {
+    return new Promise((resolve, reject) => {
+      database.run(`INSERT
+      OR REPLACE INTO config (anomaly_id, name, type, expiration, system_id, wormhole_id) VALUES(?, ?, ?, ?, ?, ?)`,
+        [anomaly.id, anomaly], function (err) {
         err ? reject(err) : resolve();
       });
     });

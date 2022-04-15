@@ -8,18 +8,18 @@ module.exports = [
 
   `CREATE TABLE eve_type
    (
-       id  INTEGER PRIMARY KEY,
-       name TEXT,
+       id          INTEGER PRIMARY KEY,
+       name        TEXT,
        description TEXT,
-       capacity REAL,
-       mass REAL,
-       volume REAL
+       capacity    REAL,
+       mass        REAL,
+       volume      REAL
    );`,
 
   `CREATE TABLE region
    (
-       id          INTEGER PRIMARY KEY,
-       name        TEXT
+       id   INTEGER PRIMARY KEY,
+       name TEXT
    );`,
 
   `CREATE TABLE constellation
@@ -115,24 +115,24 @@ module.exports = [
 
   `CREATE TABLE wormhole
    (
-       id   INTEGER PRIMARY KEY AUTOINCREMENT,
-       life TEXT,
-       mass  TEXT,
+       id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+       life               TEXT,
+       mass               TEXT,
        system_destination INTEGER,
        FOREIGN KEY (system_destination) REFERENCES system (id)
    );`,
 
   `CREATE TABLE anomaly
-     (
-         id         INTEGER PRIMARY KEY AUTOINCREMENT,
-         anomaly_id TEXT,
-         name       TEXT,
-         type       TEXT,
-         expiration INTEGER,
-         system_id INTEGER,
-         wormhole_id INTEGER,
-         FOREIGN KEY (system_id) REFERENCES system (id),
-         FOREIGN KEY (wormhole_id) REFERENCES wormhole (id)
-     );`
+   (
+       anomaly_id  TEXT NOT NULL,
+       name        TEXT,
+       type        TEXT,
+       expiration  INTEGER,
+       system_id   INTEGER NOT NULL,
+       wormhole_id INTEGER,
+       PRIMARY KEY (anomaly_id, system_id),
+       FOREIGN KEY (system_id) REFERENCES system (id),
+       FOREIGN KEY (wormhole_id) REFERENCES wormhole (id)
+   );`
 
 ];

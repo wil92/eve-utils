@@ -13,13 +13,19 @@ class Wormhole extends Component {
     super(props);
 
     this.state = {
-      systemAnomalies: []
+      systemAnomalies: [],
+      systemName: '',
+      systemClass: ''
     };
   }
 
   componentDidMount() {
     this.subscription = observable.pipe(filter(m => m.type === 'get-current-location-response')).subscribe(message => {
       console.log(message.location);
+      this.setState({
+        systemName: message.location.system.name,
+        systemClass: message.location.system['system_class']
+      })
     });
 
     console.log('aaa')
@@ -40,7 +46,7 @@ class Wormhole extends Component {
     return (
       <div className="Wormhole">
         <div className="Head">
-          <div>current location</div>
+          <div>current location: {this.state.systemName}|{this.state.systemClass}</div>
           <button onClick={() => this.copyFromClipBoard()}>copy from clipboard</button>
           <table className="table-anomalies">
             <thead>
