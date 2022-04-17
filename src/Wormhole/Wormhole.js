@@ -9,6 +9,8 @@ import {ANOMALY_TYPE_WORMHOLE, LexicoAnalyser} from "../services/AnomalyInterpre
 import Graph from "./Graph/Graph";
 import axios from "axios";
 
+const linksMap = new Map();
+
 class Wormhole extends Component {
 
   constructor(props) {
@@ -29,13 +31,13 @@ class Wormhole extends Component {
 
   componentDidMount() {
     this.getLinks().then(data => {
-      console.log(data);
+      (data.links || []).forEach(l => linksMap.set(l.name, l.url));
       this.initialSetup();
     });
   }
 
   async getLinks() {
-    axios.get(`https://eveutils.guilledev.com/links`)
+    return axios.get(`https://eveutils.guilledev.com/links`)
       .then(res => res.data);
   }
 
@@ -60,7 +62,7 @@ class Wormhole extends Component {
       filter(m => m.type === 'load-anomalies-response'),
       takeUntil(this.unsubscribe)
     ).subscribe(message => {
-      this.setState({systemAnomalies: message.anomalies});
+      this.setState({systemAnomalies: message.anomalies.map(a => ({...a, link: linksMap.get(a.name)}))});
     });
 
     sendMessage({type: 'get-current-location'});
@@ -75,6 +77,12 @@ class Wormhole extends Component {
     const analyser = new LexicoAnalyser(text);
     const anomalies = analyser.readAnomalies();
     await sendMessage({type: 'save-anomalies', anomalies, systemId: this.state.system.id});
+  }
+
+  ageInMinutes(time) {
+    console.log(time)
+    const life = (new Date(time).getTime()) - (new Date().getTime());
+    return `${Math.round(life / 60000)}m`
   }
 
   render() {
@@ -94,18 +102,12 @@ class Wormhole extends Component {
             </tr>
             </thead>
             <tbody>
-            {this.state.systemAnomalies.map((anomaly, index) => anomaly.type === ANOMALY_TYPE_WORMHOLE ?
-              (<tr key={index}>
+            {this.state.systemAnomalies.map((anomaly, index) => (<tr key={index}>
                 <td>{anomaly.id}</td>
                 <td>{anomaly.type}</td>
-                <td>{moment(anomaly.createdAt).fromNow()}</td>
-                <td>{anomaly.to}</td>
-              </tr>) :
-              (<tr key={index}>
-                <td>{anomaly.id}</td>
-                <td>{anomaly.type}</td>
-                <td>{moment(anomaly.createdAt).fromNow()}</td>
-                <td>{anomaly.name}</td>
+                <td>{this.ageInMinutes(anomaly.expiration)}</td>
+                {anomaly.type === ANOMALY_TYPE_WORMHOLE ? (<td>{anomaly.to}</td>) : (
+                  <td>{anomaly.link ? (<a href={anomaly.link} target="_blank">{anomaly.name}</a>) : anomaly.name}</td>)}
               </tr>)
             )}
             </tbody>

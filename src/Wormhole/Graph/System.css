@@ -1,21 +1,99 @@
-.System {
+.SolarSystem {
+    width: 40px;
+    height: 50px;
+    position: absolute;
+}
+.SolarSystem .Planets {
+    width: 100px;
+    height: 35px;
+    border: solid 3px #fff;
+    position: absolute;
+    border-radius: 50%;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    transform: translate(-50%, -50%) rotate(6deg);
+}
+.SolarSystem .Planets .Planet {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: #fff;
+    position: absolute;
+    border: solid 1px black;
+}
+.SolarSystem .Planets .P1 {
+    top: -2px;
+}
+.SolarSystem .Planets .P2 {
+    width: 25px;
+    height: 25px;
+    bottom: -12px;
+    right: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    transform: rotate(-6deg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.SolarSystem .SunOver {
+    width: 40px;
+    height: 15px;
     position: absolute;
     overflow: hidden;
-    font-size: 10px;
     padding-left: 10px;
     margin-left: -10px;
     padding-right: 10px;
     margin-right: -10px;
+    z-index: 2;
 }
-
-.System:before {
-    content: '';
+.SolarSystem .SunOver:before {
+    content: "";
+    position: absolute;
+    height: 70px;
+    left: 0;
+    right: 0;
+    top: -10px;
+    background: #faa307;
+    border-radius: 50%;
+    z-index: 0;
+}
+.SolarSystem .Sun {
+    width: 40px;
+    height: 50px;
+    position: relative;
+    overflow: hidden;
+    padding-left: 10px;
+    margin-left: -10px;
+    padding-right: 10px;
+    margin-right: -10px;
+    text-align: center;
+}
+.SolarSystem .Sun:before {
+    content: "";
     position: absolute;
     left: 0;
     right: 0;
     top: -10px;
     bottom: -10px;
-    background: #4f4f5c;
+    background: #faa307;
     border-radius: 50%;
-    z-index: -1;
+    z-index: 0;
+}
+.SolarSystem .Name {
+    color: black;
+    font-size: 10px;
+    font-weight: bold;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 15;
+    text-align: center;
+}
+.SolarSystem .Name:hover {
+    text-decoration: underline;
+    cursor: pointer;
 }

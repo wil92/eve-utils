@@ -23,7 +23,7 @@ export class SystemModel {
     this.position = {x: 0, y: 0};
 
     /** {w: number, h: number} */
-    this.shape = {w: 80, h: 60}
+    this.shape = {w: 40, h: 50}
   }
 
   getCenter() {

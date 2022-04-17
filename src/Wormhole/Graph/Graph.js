@@ -6,8 +6,8 @@ import {SystemModel, WormholeModel} from "./GraphModels";
 import Path from "./Path";
 
 const scaleDelta = 0.001;
-const marginHeight = 20;
-const marginWidth = 30;
+const marginHeight = 30;
+const marginWidth = 80;
 
 const MAX_SCALE_VALUE = 1.63;
 const MIN_SCALE_VALUE = 0.67;
@@ -143,7 +143,7 @@ class Graph extends Component {
       y: Math.min(systemParent.getCenter().y, systemChild.getCenter().y)
     };
     const shape = {
-      w: Math.max(Math.abs(systemParent.getCenter().x - systemChild.getCenter().x), 4),
+      w: Math.max(Math.abs(systemParent.getCenter().x - systemChild.getCenter().x), 1),
       h: Math.abs(systemParent.getCenter().y - systemChild.getCenter().y)
     };
     return {position, shape, invert: systemParent.position.x < systemChild.position.x};

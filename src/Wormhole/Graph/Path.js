@@ -34,14 +34,14 @@ class Path extends Component {
         <svg height="100%"
              width="100%">
           {!this.state.invert && <path
-            d={`M 2 ${this.state.h} L 2 ${this.state.h / 2} L ${this.state.w - 2} ${this.state.h / 2} L ${this.state.w - 2} 0`}
+            d={`M 0 ${this.state.h} L 0 ${this.state.h / 2} L ${this.state.w} ${this.state.h / 2} L ${this.state.w} 0`}
             stroke="black"
-            stroke-width="3"
+            stroke-width="2"
             fill="none"/>}
           {this.state.invert && <path
-            d={`M 2 0 L 2 ${this.state.h / 2} L ${this.state.w - 2} ${this.state.h / 2} L ${this.state.w - 2} ${this.state.h}`}
+            d={`M 0 0 L 0 ${this.state.h / 2} L ${this.state.w} ${this.state.h / 2} L ${this.state.w} ${this.state.h}`}
             stroke="black"
-            stroke-width="3"
+            stroke-width="2"
             fill="none"/>}
         </svg>
       </div>

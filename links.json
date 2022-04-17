@@ -30,12 +30,24 @@
       "url": "https://wiki.eveuniversity.org/Sansha_Refuge"
     },
     {
+      "name": "Sleeper Data Sanctuary",
+      "url": "https://eve-survival.org/wikka.php?wakka=SleeperDataSanctuary"
+    },
+    {
+      "name": "The Ruins of Enclave Cohort 27",
+      "url": "https://wiki.eveuniversity.org/The_Ruins_of_Enclave_Cohort_27"
+    },
+    {
       "name": "Uncommon Core Deposit",
       "url": "https://eve-survival.org/wikka.php?wakka=UncommonCoreDeposit"
     },
     {
       "name": "Unexceptional Frontier Deposit",
       "url": "https://eve-survival.org/wikka.php?wakka=UnexceptionalFrontierDeposit"
+    },
+    {
+      "name": "Unsecured Perimeter Transponder Farm",
+      "url": "https://eve-survival.org/wikka.php?wakka=UnsecuredPerimeterTransponderFarm"
     }
   ]
 }
