@@ -154,27 +154,76 @@ module.exports = {
   },
 
   /**
-   * @param anomalies {{id: string, createdAt: number, name: string, category: number, type: number}[]}
+   * @param anomalies {{id: string, expiration: number, name: string, category: number, type: number, life: string, mass: string}[]}
+   * @param systemId {number}
    * @return {Promise<void>}
    */
-  async saveAnomalies(anomalies) {
+  async saveAnomaliesAndRemoveMissing(anomalies, systemId) {
+    const oldAnomalies = await this.loadAnomaliesBySystemId(systemId);
+    const used = new Set();
+    anomalies.forEach(a => used.add(a.id));
+
+    console.log(anomalies);
+    await new Promise((resolve, reject) => {
+      database.serialize(() => {
+        database.run('BEGIN;');
+
+        for (let i = 0; i < oldAnomalies.length; i++) {
+          if (!used.has(oldAnomalies[i].id)) {
+            // this.removeAnomalyById(oldAnomalies[i].id);
+            database.run('DELETE FROM anomaly WHERE id=?;', [oldAnomalies[i].id]);
+          }
+        }
+
+        database.run('COMMIT;', err => err ? reject(err) : resolve());
+      });
+    });
+    console.log('seeeeeeeeee')
+
     for (let i = 0; i < anomalies.length; i++) {
-      await this.saveAnomaly(anomalies[i]);
+      await this.saveAnomaly(anomalies[i], systemId);
     }
   },
 
   /**
-   * @param anomaly {{id: string, createdAt: number, name: string, category: number, type: number}}
+   * @param anomaly {{id: string, expiration: number, name: string, category: number, type: number, life: string, mass: string}}
+   * @param systemId {number}
+   * @param destinationSystem {number|null}
    * @return {Promise<unknown>}
    */
-  async saveAnomaly(anomaly) {
+  async saveAnomaly(anomaly, systemId, destinationSystem = null) {
     return new Promise((resolve, reject) => {
       database.run(`INSERT
-      OR REPLACE INTO config (anomaly_id, name, type, expiration, system_id, wormhole_id) VALUES(?, ?, ?, ?, ?, ?)`,
-        [anomaly.id, anomaly], function (err) {
-        err ? reject(err) : resolve();
-      });
+              OR REPLACE INTO anomaly (id, name, type, expiration, life, mass, system_id, system_destination) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
+        [anomaly.id, anomaly.name, anomaly.type, anomaly.expiration, anomaly.life, anomaly.mass, systemId, destinationSystem], function (err) {
+          err ? reject(err) : resolve();
+        });
     });
+  },
+
+  /**
+   * @param anomalyId {string}
+   * @return {Promise<unknown>}
+   */
+  async removeAnomalyById(anomalyId) {
+    return new Promise((resolve, reject) => {
+      database.run('DELETE FROM anomaly WHERE id="?";', [anomalyId], err => err ? reject(err) : resolve());
+    });
+  },
+
+  /**
+   * @param systemId {number}
+   * @return {Promise<{id: string, expiration: number, name: string, category: number, type: number, life: string, mass: string}[]>}
+   */
+  async loadAnomaliesBySystemId(systemId) {
+    const sql = 'SELECT * FROM anomaly WHERE system_id=?;';
+    return new Promise((resolve, reject) => {
+      database.all(sql, [systemId], (err, rows) => err ? reject(err) : resolve(rows));
+    });
+  },
+
+  async removeOutdatedAnomalies() {
+    // toDo 17.04.22, guille,
   },
 
   async createFirstLaunch() {

@@ -1,11 +1,13 @@
 import {Component} from "react";
 import moment from "moment";
+import {filter, Subject, takeUntil} from "rxjs";
+
 
 import './Wormhole.css';
 import {observable, sendMessage} from "../services/MessageHandler";
 import {ANOMALY_TYPE_WORMHOLE, LexicoAnalyser} from "../services/AnomalyInterpreter";
 import Graph from "./Graph/Graph";
-import {filter} from "rxjs";
+import axios from "axios";
 
 class Wormhole extends Component {
 
@@ -14,39 +16,72 @@ class Wormhole extends Component {
 
     this.state = {
       systemAnomalies: [],
-      systemName: '',
-      systemClass: ''
+      system: {
+        name: '',
+        class: '',
+        id: 0
+      },
+      syncUserSystem: true
     };
+
+    this.unsubscribe = new Subject();
   }
 
   componentDidMount() {
-    this.subscription = observable.pipe(filter(m => m.type === 'get-current-location-response')).subscribe(message => {
-      console.log(message.location);
+    this.getLinks().then(data => {
+      console.log(data);
+      this.initialSetup();
+    });
+  }
+
+  async getLinks() {
+    axios.get(`https://eveutils.guilledev.com/links`)
+      .then(res => res.data);
+  }
+
+  initialSetup() {
+    this.subscription = observable.pipe(
+      filter(m => m.type === 'get-current-location-response'),
+      filter(m => m.location.system.name !== this.state.system.name),
+      takeUntil(this.unsubscribe)
+    ).subscribe(message => {
+      if (this.state.syncUserSystem) {
+        sendMessage({type: 'load-anomalies', systemId: message.location.system.id});
+      }
       this.setState({
-        systemName: message.location.system.name,
-        systemClass: message.location.system['system_class']
-      })
+        system: {
+          name: message.location.system.name,
+          class: message.location.system['system_class'],
+          id: message.location.system.id
+        }
+      });
+    });
+    this.subscription = observable.pipe(
+      filter(m => m.type === 'load-anomalies-response'),
+      takeUntil(this.unsubscribe)
+    ).subscribe(message => {
+      this.setState({systemAnomalies: message.anomalies});
     });
 
-    console.log('aaa')
     sendMessage({type: 'get-current-location'});
   }
 
   componentWillUnmount() {
-    this.subscription.unsubscribe();
+    this.unsubscribe.next(true);
   }
 
   async copyFromClipBoard() {
     const text = await navigator.clipboard.readText();
     const analyser = new LexicoAnalyser(text);
-    this.setState({systemAnomalies: analyser.readAnomalies()});
+    const anomalies = analyser.readAnomalies();
+    await sendMessage({type: 'save-anomalies', anomalies, systemId: this.state.system.id});
   }
 
   render() {
     return (
       <div className="Wormhole">
         <div className="Head">
-          <div>current location: {this.state.systemName}|{this.state.systemClass}</div>
+          <div>current location: {this.state.system.name}|{this.state.system.class}</div>
           <button onClick={() => this.copyFromClipBoard()}>copy from clipboard</button>
           <table className="table-anomalies">
             <thead>
@@ -55,9 +90,7 @@ class Wormhole extends Component {
               <th>ID</th>
               <th>Type</th>
               <th>Age</th>
-              <th>Leads To</th>
-              <th>Life</th>
-              <th>Mass</th>
+              <th>Name/LeadsTo</th>
             </tr>
             </thead>
             <tbody>
@@ -67,14 +100,12 @@ class Wormhole extends Component {
                 <td>{anomaly.type}</td>
                 <td>{moment(anomaly.createdAt).fromNow()}</td>
                 <td>{anomaly.to}</td>
-                <td>{anomaly.life}</td>
-                <td>{anomaly.mass}</td>
               </tr>) :
               (<tr key={index}>
                 <td>{anomaly.id}</td>
                 <td>{anomaly.type}</td>
                 <td>{moment(anomaly.createdAt).fromNow()}</td>
-                <td colSpan={3}>{anomaly.name}</td>
+                <td>{anomaly.name}</td>
               </tr>)
             )}
             </tbody>

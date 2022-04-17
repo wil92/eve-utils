@@ -47,15 +47,6 @@ module.exports = (window) => {
         window.webContents.send('in-message', {type: 'load-value-response', value, key: data.key, id: data.id});
       });
 
-      ipcMain.on('sync-all-data', async () => {
-        await this.refreshToken();
-        await syncDataService.syncAllData();
-        await this.sendTableResult({page: 1});
-        logsService.unblock();
-        await dataService.saveValue('firstLaunch', false);
-        window.webContents.send('in-message', {type: 'load-value-response', value: false, key: 'firstLaunch'});
-      });
-
       ipcMain.on('remove-opportunity', async (event, data) => {
         await dataService.removeOpportunity(data['opportunityId']);
         window.webContents.send('in-message', {type: 'remove-opportunity-response', id: data.id});
@@ -77,7 +68,6 @@ module.exports = (window) => {
       ipcMain.on('calculate-market', async (event, data) => {
         logsService.log('Start market calculation');
         let fixedStationOrigin;
-        // fixedStationOrigin, fixedStationDestination
         if (data.fixedStationOrigin) {
           fixedStationOrigin = +data.fixedStationOrigin;
         }
@@ -100,11 +90,12 @@ module.exports = (window) => {
       });
 
       ipcMain.on('save-anomalies', async (event, data) => {
-
+        await dataService.saveAnomaliesAndRemoveMissing(data.anomalies, data.systemId);
+        await this.sendSystemAnomalies(data.systemId);
       });
 
       ipcMain.on('load-anomalies', async (event, data) => {
-        window.webContents.send('in-message', {type: 'get-security-status-response', securityStatus, id: data.id});
+        await this.sendSystemAnomalies(data.systemId);
       });
 
       ipcMain.on('get-security-status', async (event, data) => {
@@ -123,6 +114,16 @@ module.exports = (window) => {
         const userInfo = await authService.getUserInfo(authData['access_token']);
         window.webContents.send('in-message', {type: 'user-info-response', userInfo, id: data.id});
       });
+    },
+
+    /**
+     * @param systemId {number}
+     * @param responseId
+     * @return {Promise<void>}
+     */
+    async sendSystemAnomalies(systemId, responseId = null) {
+      const anomalies = await dataService.loadAnomaliesBySystemId(systemId);
+      window.webContents.send('in-message', {type: 'load-anomalies-response', anomalies, id: responseId});
     },
 
     async getCurrentLocation(responseId) {
