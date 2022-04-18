@@ -12,7 +12,8 @@ class Path extends Component {
       y: props.position.y,
       w: props.shape.w,
       h: props.shape.h,
-      invert: props.invert
+      invert: props.invert,
+      pathColor: "#4cc9f0"
     };
   }
 
@@ -35,13 +36,13 @@ class Path extends Component {
              width="100%">
           {!this.state.invert && <path
             d={`M 0 ${this.state.h} L 0 ${this.state.h / 2} L ${this.state.w} ${this.state.h / 2} L ${this.state.w} 0`}
-            stroke="black"
-            stroke-width="2"
+            stroke={this.state.pathColor}
+            stroke-width="1"
             fill="none"/>}
           {this.state.invert && <path
             d={`M 0 0 L 0 ${this.state.h / 2} L ${this.state.w} ${this.state.h / 2} L ${this.state.w} ${this.state.h}`}
-            stroke="black"
-            stroke-width="2"
+            stroke={this.state.pathColor}
+            stroke-width="1"
             fill="none"/>}
         </svg>
       </div>

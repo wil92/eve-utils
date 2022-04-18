@@ -4,7 +4,7 @@ import {filter, Subject, takeUntil} from "rxjs";
 
 
 import './Wormhole.css';
-import {observable, sendMessage} from "../services/MessageHandler";
+import {observable, sendMessage, sendMessageAndWaitResponse} from "../services/MessageHandler";
 import {ANOMALY_TYPE_WORMHOLE, LexicoAnalyser} from "../services/AnomalyInterpreter";
 import Graph from "./Graph/Graph";
 import axios from "axios";
@@ -23,6 +23,7 @@ class Wormhole extends Component {
         class: '',
         id: 0
       },
+      treeRoot: 0,
       syncUserSystem: true
     };
 
@@ -55,14 +56,22 @@ class Wormhole extends Component {
           name: message.location.system.name,
           class: message.location.system['system_class'],
           id: message.location.system.id
-        }
+        },
+        treeRoot: message.location.system.id
       });
+      sendMessage({type: 'load-tree', systemId: message.location.system.id});
     });
     this.subscription = observable.pipe(
       filter(m => m.type === 'load-anomalies-response'),
       takeUntil(this.unsubscribe)
     ).subscribe(message => {
       this.setState({systemAnomalies: message.anomalies.map(a => ({...a, link: linksMap.get(a.name)}))});
+    });
+    this.subscription = observable.pipe(
+      filter(m => m.type === 'update-anomaly-destination-response'),
+      takeUntil(this.unsubscribe)
+    ).subscribe(message => {
+      sendMessage({type: 'load-tree', systemId: this.state.system.id});
     });
 
     sendMessage({type: 'get-current-location'});
@@ -76,7 +85,8 @@ class Wormhole extends Component {
     const text = await navigator.clipboard.readText();
     const analyser = new LexicoAnalyser(text);
     const anomalies = analyser.readAnomalies();
-    await sendMessage({type: 'save-anomalies', anomalies, systemId: this.state.system.id});
+    await sendMessageAndWaitResponse({type: 'save-anomalies', anomalies, systemId: this.state.system.id});
+    sendMessage({type: 'load-tree', systemId: this.state.system.id});
   }
 
   ageInMinutes(time) {
@@ -89,31 +99,48 @@ class Wormhole extends Component {
     return (
       <div className="Wormhole">
         <div className="Head">
-          <div>current location: {this.state.system.name}|{this.state.system.class}</div>
-          <button onClick={() => this.copyFromClipBoard()}>copy from clipboard</button>
-          <table className="table-anomalies">
-            <thead>
-
-            <tr>
-              <th>ID</th>
-              <th>Type</th>
-              <th>Age</th>
-              <th>Name/LeadsTo</th>
-            </tr>
-            </thead>
-            <tbody>
-            {this.state.systemAnomalies.map((anomaly, index) => (<tr key={index}>
-                <td>{anomaly.id}</td>
-                <td>{anomaly.type}</td>
-                <td>{this.ageInMinutes(anomaly.expiration)}</td>
-                {anomaly.type === ANOMALY_TYPE_WORMHOLE ? (<td>{anomaly.to}</td>) : (
-                  <td>{anomaly.link ? (<a href={anomaly.link} target="_blank">{anomaly.name}</a>) : anomaly.name}</td>)}
-              </tr>)
-            )}
-            </tbody>
-          </table>
+          <div className="data-container">
+            <div className="current-anomaly-status">
+              <div>{this.state.system.name}</div>
+              <div>{this.state.system.class}</div>
+            </div>
+            <div>
+              <div className="table-actions">
+                <button onClick={() => this.copyFromClipBoard()}>copy from clipboard</button>
+                <button>remove</button>
+              </div>
+              <table className="table-anomalies">
+                <thead>
+                <tr>
+                  <th><input type="checkbox"/></th>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Age</th>
+                  <th>Name/LeadsTo</th>
+                </tr>
+                </thead>
+                <tbody>
+                {this.state.systemAnomalies.map((anomaly, index) => (<tr key={index}>
+                    <td><input type="checkbox"/></td>
+                    <td>{anomaly.id}</td>
+                    <td>{anomaly.type}</td>
+                    <td>{this.ageInMinutes(anomaly.expiration)}</td>
+                    {anomaly.type === ANOMALY_TYPE_WORMHOLE ? (<td>{anomaly.to}</td>) : (
+                      <td>{anomaly.link ? (
+                        <a href={anomaly.link} target="_blank">{anomaly.name}</a>) : anomaly.name}</td>)}
+                  </tr>)
+                )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
         <div className="Body">
+          <div className="graph-actions">
+            <div className="graph-actions-tab active">Follow ship</div>
+            {/*<div className="graph-actions-tab">J111255</div>*/}
+            {/*<div className="graph-actions-tab">+</div>*/}
+          </div>
           <Graph/>
         </div>
       </div>

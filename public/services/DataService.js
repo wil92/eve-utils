@@ -93,6 +93,14 @@ module.exports = {
     });
   },
 
+  async getSystemByName(systemName) {
+    return new Promise((resolve, reject) => {
+      database.get('SELECT * FROM system WHERE name=?', [systemName], (err, row) => {
+        err ? reject(err) : resolve(row);
+      });
+    });
+  },
+
   async loadNumValue(key) {
     const res = await this.loadValue(key);
     return res ? +res : null;
@@ -219,6 +227,24 @@ module.exports = {
     const sql = 'SELECT * FROM anomaly WHERE system_id=?;';
     return new Promise((resolve, reject) => {
       database.all(sql, [systemId], (err, rows) => err ? reject(err) : resolve(rows));
+    });
+  },
+
+  async loadAnomalyById(anomalyId) {
+    const sql = 'SELECT * FROM anomaly WHERE id=?;';
+    return new Promise((resolve, reject) => {
+      database.get(sql, [anomalyId], (err, row) => err ? reject(err) : resolve(row));
+    });
+  },
+
+  /**
+   *
+   * @return {Promise<unknown[]>}
+   */
+  async loadAnomalies() {
+    const sql = 'SELECT * FROM anomaly;';
+    return new Promise((resolve, reject) => {
+      database.all(sql, [], (err, rows) => err ? reject(err) : resolve(rows));
     });
   },
 

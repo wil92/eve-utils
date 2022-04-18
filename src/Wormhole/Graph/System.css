@@ -21,6 +21,7 @@
     background-color: #fff;
     position: absolute;
     border: solid 1px black;
+    color: #000;
 }
 .SolarSystem .Planets .P1 {
     top: -2px;
@@ -37,6 +38,25 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+.SolarSystem .EditButton {
+    position: absolute;
+    width: 20px;
+    height: 30px;
+    background-color: #fff;
+    border-radius: 5px;
+    right: 0;
+    top: -8px;
+    cursor: pointer;
+    border: solid 1px #000;
+    color: #000;
+    font-size: 20px;
+    transition: top 0.5s;
+    font-weight: bold;
+    text-align: center;
+}
+.SolarSystem .EditButton:hover {
+    top: -25px;
 }
 .SolarSystem .SunOver {
     width: 40px;
@@ -92,6 +112,7 @@
     transform: translate(-50%, -50%);
     z-index: 15;
     text-align: center;
+    white-space: nowrap;
 }
 .SolarSystem .Name:hover {
     text-decoration: underline;

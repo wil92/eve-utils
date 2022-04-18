@@ -91,11 +91,25 @@ module.exports = (window) => {
 
       ipcMain.on('save-anomalies', async (event, data) => {
         await dataService.saveAnomaliesAndRemoveMissing(data.anomalies, data.systemId);
-        await this.sendSystemAnomalies(data.systemId);
+        await this.sendSystemAnomalies(data.systemId, data.id);
+      });
+
+      ipcMain.on('update-anomaly-destination', async (event, data) => {
+        const destinationSys = await dataService.getSystemByName(data.destinationName);
+        const anomaly = await dataService.loadAnomalyById(data.anomalyId);
+        if (anomaly) {
+          await dataService.saveAnomaly(anomaly, anomaly['system_id'], destinationSys && destinationSys.id);
+
+          window.webContents.send('in-message', {type: 'update-anomaly-destination-response', id: data.id});
+        }
       });
 
       ipcMain.on('load-anomalies', async (event, data) => {
         await this.sendSystemAnomalies(data.systemId);
+      });
+
+      ipcMain.on('load-tree', async (event, data) => {
+        await this.sendAnomaliesTree(data.systemId);
       });
 
       ipcMain.on('get-security-status', async (event, data) => {
@@ -124,6 +138,39 @@ module.exports = (window) => {
     async sendSystemAnomalies(systemId, responseId = null) {
       const anomalies = await dataService.loadAnomaliesBySystemId(systemId);
       window.webContents.send('in-message', {type: 'load-anomalies-response', anomalies, id: responseId});
+    },
+
+    /**
+     * @param systemId {number}
+     * @return {Promise<void>}
+     */
+    async sendAnomaliesTree(systemId, responseId) {
+      const anomalies = await dataService.loadAnomalies();
+      const queue = [systemId];
+      const flags = new Set();
+      flags.add(systemId);
+      const tree = [];
+
+      while (queue.length > 0) {
+        const sid = queue.shift();
+        const node = {wormholes: [], system: await dataService.getSystemById(sid)};
+
+        anomalies
+          .filter(a => a['system_id'] === sid && a['type'] === 'Wormhole')
+          .forEach(a => {
+            if (a['system_destination'] && !flags.has(a['system_destination'])) {
+              flags.add(a['system_destination']);
+              queue.push(a['system_destination']);
+            }
+            node.wormholes.push(a);
+          });
+
+        tree.push(node);
+      }
+
+      window.webContents.send('in-message', {
+        type: 'load-tree-response', tree, id: responseId
+      });
     },
 
     async getCurrentLocation(responseId) {

@@ -1,23 +1,30 @@
 export class WormholeModel {
   /**
+   * @param anomaly
+   * @param origin {SystemModel}
    * @param destination {SystemModel}
    */
-  constructor(destination) {
+  constructor(anomaly, origin, destination) {
+    this.anomaly = anomaly;
+
+    /** {SystemModel} */
+    this.origin = origin;
+
     /** {SystemModel} */
     this.destination = destination;
   }
 }
 
 export class SystemModel {
-  constructor() {
+  constructor(id, name = '', category = '', root = false) {
     /** Wormhole[] */
     this.wormholes = [];
 
+    /** {WormholeModel} */
+    this.wormholeParent = null;
+
     /** {name: string, category: string} */
-    this.info = {
-      name: Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5).toUpperCase(),
-      category: 'C' + Math.floor(Math.random() * 6) + 1
-    };
+    this.info = {id, name, category, root};
 
     /** {x: number, y: number} */
     this.position = {x: 0, y: 0};

@@ -4,6 +4,8 @@ import './Graph.css';
 import System from "./System";
 import {SystemModel, WormholeModel} from "./GraphModels";
 import Path from "./Path";
+import {observable} from "../../services/MessageHandler";
+import {filter, Subject, takeUntil} from "rxjs";
 
 const scaleDelta = 0.001;
 const marginHeight = 30;
@@ -27,41 +29,70 @@ class Graph extends Component {
       paths: []
     };
 
+    this.unsubscribe = new Subject();
     this.handleTransform = this.handleTransform.bind(this);
   }
 
   componentDidMount() {
-    const n1 = new SystemModel();
-    const n2 = new SystemModel();
-    const n3 = new SystemModel();
-    const n4 = new SystemModel();
-    const n5 = new SystemModel();
-    const n6 = new SystemModel();
-    const n7 = new SystemModel();
-    n1.wormholes = [
-      new WormholeModel(n2),
-      new WormholeModel(n3),
-      new WormholeModel(n4)
-    ];
-    n2.wormholes = [
-      new WormholeModel(n5),
-      new WormholeModel(n6)
-    ];
-    n3.wormholes = [
-      new WormholeModel(n7)
-    ];
+    this.subscription = observable.pipe(
+      filter(m => m.type === 'load-tree-response'),
+      takeUntil(this.unsubscribe)
+    ).subscribe(message => {
+      console.log(message.tree);
+      this.setState({position: {x: 0, y: 0, scale: 1},
+        startPosition: {x: 0, y: 0},
+        movement: {x: 0, y: 0},
+        systemTree: {},
+        systems: [],
+        paths: []
+      });
 
-    this.setState({
-      systemTree: n1,
-      systems: [n1, n2, n3, n4, n5, n6, n7],
-      paths: []
+      const mapNodePos = new Map();
+      (message.tree || []).forEach((n, index) => mapNodePos.set(n.system.id, index));
+
+      const systemMap = new Map();
+      // toDo 17.04.22, guille, missing name and
+      const systemTree = new SystemModel(
+        message.tree[0].system.id,
+        message.tree[0].system.name,
+        message.tree[0].system['system_class'],
+        true
+      );
+      systemMap.set(systemTree.info.id, systemTree);
+
+      const used = new Set();
+      used.add(message.tree[0].system.id);
+      const queue = [{item: message.tree[0], node: systemTree}];
+      while (queue.length > 0) {
+        const no = queue.shift();
+
+        for (let i = 0; i < no.item.wormholes.length; i++) {
+          if (no.item.wormholes[i]['system_destination']) {
+            const systemId = no.item.wormholes[i]['system_destination'];
+            if (!used.has(systemId)) {
+              used.add(systemId);
+              const treeNode = message.tree[mapNodePos.get(systemId)];
+              const subTree = systemMap.has(systemId) ?
+                systemMap.get(systemId) :
+                new SystemModel(systemId, treeNode.system.name, treeNode.system['system_class']);
+              systemMap.set(systemId, subTree);
+              queue.push({item: treeNode, node: subTree});
+              no.node.wormholes.push(new WormholeModel(no.item.wormholes[i], no.node, subTree));
+            }
+          } else {
+            no.node.wormholes.push(new WormholeModel(no.item.wormholes[i], no.node, new SystemModel()));
+          }
+        }
+      }
+
+      this.setState({systemTree});
+      this.calculateTreePositions(systemTree);
+      this.calculatePaths(systemTree);
     });
-
-    this.calculateTreePositions(n1);
-    this.calculatePaths(n1);
   }
 
   componentWillUnmount() {
+    this.unsubscribe.next(true);
   }
 
   handleTransform(event) {
@@ -120,9 +151,13 @@ class Graph extends Component {
       minX = Math.min(minX, ele.position.x);
       maxX = Math.max(maxX, ele.position.x);
     });
+    const systems = [];
     this.bfsOverTree(system, (ele) => {
       ele.position.x -= (maxX - minX);
+      systems.push(ele);
+      (ele.wormholes || []).forEach(w => w.destination.wormholeParent = w);
     });
+    this.setState({systems});
   }
 
   calculatePaths(system) {
