@@ -89,6 +89,10 @@ td > a {
     font-weight: bold;
 }
 
+td > a:hover {
+    cursor: pointer;
+}
+
 .thinline, button {
     white-space: nowrap;
 }

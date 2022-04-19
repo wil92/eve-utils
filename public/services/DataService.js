@@ -93,9 +93,13 @@ module.exports = {
     });
   },
 
+  /**
+   * @param systemName {string}
+   * @return {Promise<unknown>}
+   */
   async getSystemByName(systemName) {
     return new Promise((resolve, reject) => {
-      database.get('SELECT * FROM system WHERE name=?', [systemName], (err, row) => {
+      database.get('SELECT * FROM system WHERE UPPER(name)=?', [systemName.toUpperCase()], (err, row) => {
         err ? reject(err) : resolve(row);
       });
     });
@@ -171,7 +175,6 @@ module.exports = {
     const used = new Set();
     anomalies.forEach(a => used.add(a.id));
 
-    console.log(anomalies);
     await new Promise((resolve, reject) => {
       database.serialize(() => {
         database.run('BEGIN;');
@@ -186,7 +189,6 @@ module.exports = {
         database.run('COMMIT;', err => err ? reject(err) : resolve());
       });
     });
-    console.log('seeeeeeeeee')
 
     for (let i = 0; i < anomalies.length; i++) {
       await this.saveAnomaly(anomalies[i], systemId);
@@ -224,7 +226,7 @@ module.exports = {
    * @return {Promise<{id: string, expiration: number, name: string, category: number, type: number, life: string, mass: string}[]>}
    */
   async loadAnomaliesBySystemId(systemId) {
-    const sql = 'SELECT * FROM anomaly WHERE system_id=?;';
+    const sql = 'SELECT a.*, s.name as system_name FROM anomaly a LEFT JOIN system s ON a.system_destination = s.id  WHERE system_id=?;';
     return new Promise((resolve, reject) => {
       database.all(sql, [systemId], (err, rows) => err ? reject(err) : resolve(rows));
     });
@@ -245,6 +247,17 @@ module.exports = {
     const sql = 'SELECT * FROM anomaly;';
     return new Promise((resolve, reject) => {
       database.all(sql, [], (err, rows) => err ? reject(err) : resolve(rows));
+    });
+  },
+
+  /**
+   * @param systemId {number}
+   * @return {Promise<unknown>}
+   */
+  async loadSystem(systemId) {
+    const sql = 'SELECT * FROM system WHERE id=?;';
+    return new Promise((resolve, reject) => {
+      database.get(sql, [systemId], (err, row) => err ? reject(err) : resolve(row));
     });
   },
 
@@ -273,7 +286,6 @@ module.exports = {
                       INNER JOIN constellation AS c ON c.id = s.constellation_id
              WHERE ${where};`;
     }
-    console.log(sql);
     database.serialize(() => {
       database.each(sql, (err, result) => {
         callback(err, result);

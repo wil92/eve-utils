@@ -38,7 +38,6 @@ class Graph extends Component {
       filter(m => m.type === 'load-tree-response'),
       takeUntil(this.unsubscribe)
     ).subscribe(message => {
-      console.log(message.tree);
       this.setState({position: {x: 0, y: 0, scale: 1},
         startPosition: {x: 0, y: 0},
         movement: {x: 0, y: 0},
@@ -51,7 +50,6 @@ class Graph extends Component {
       (message.tree || []).forEach((n, index) => mapNodePos.set(n.system.id, index));
 
       const systemMap = new Map();
-      // toDo 17.04.22, guille, missing name and
       const systemTree = new SystemModel(
         message.tree[0].system.id,
         message.tree[0].system.name,
@@ -239,7 +237,8 @@ class Graph extends Component {
           ))}
           {this.state.systems.map((system, index) => (
             <System key={index}
-                    system={system}/>
+                    system={system}
+                    openEditAnomalyModal={this.props.openEditAnomalyModal}/>
           ))}
         </div>
 

@@ -108,6 +108,11 @@ module.exports = (window) => {
         await this.sendSystemAnomalies(data.systemId);
       });
 
+      ipcMain.on('load-system', async (event, data) => {
+        const system = await dataService.loadSystem(data.systemId);
+        window.webContents.send('in-message', {type: 'load-system-response', system, id: data.id});
+      });
+
       ipcMain.on('load-tree', async (event, data) => {
         await this.sendAnomaliesTree(data.systemId);
       });
@@ -142,9 +147,10 @@ module.exports = (window) => {
 
     /**
      * @param systemId {number}
+     * @param responseId {number|null}
      * @return {Promise<void>}
      */
-    async sendAnomaliesTree(systemId, responseId) {
+    async sendAnomaliesTree(systemId, responseId= null) {
       const anomalies = await dataService.loadAnomalies();
       const queue = [systemId];
       const flags = new Set();
