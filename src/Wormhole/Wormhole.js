@@ -82,7 +82,13 @@ class Wormhole extends Component {
       }
     });
     this.subscription = observable.pipe(filter(m => m.type === 'load-anomalies-response'), takeUntil(this.unsubscribe)).subscribe(message => {
-      this.setState({systemAnomalies: message.anomalies.map(a => ({...a, link: linksMap.get(a.name.toUpperCase())}))});
+      this.setState({
+        systemAnomalies: message.anomalies.map(a => ({
+          ...a,
+          selected: false,
+          link: linksMap.get(a.name.toUpperCase())
+        }))
+      });
     });
     this.subscription = observable.pipe(filter(m => m.type === 'load-system-response'), takeUntil(this.unsubscribe)).subscribe(message => {
       this.setState({
@@ -134,7 +140,7 @@ class Wormhole extends Component {
       this.setState({treeRootId: rootSystem.id, syncUserSystem: false});
       sendMessage({type: 'load-tree', systemId: rootSystem.id});
     } else {
-      this.setState({treeRootId: this.state.currentSystem, syncUserSystem: true});
+      this.setState({treeRootId: this.state.currentSystem.id, syncUserSystem: true});
       sendMessage({type: 'load-tree', systemId: this.state.currentSystem.id});
     }
   }
@@ -169,6 +175,20 @@ class Wormhole extends Component {
     this.setState({editAnomaly: true, anomalyId, leadsToName, parentName});
   }
 
+  allChecker() {
+    const status = this.state.systemAnomalies.reduce((p, a) => p && a.selected, true);
+    this.setState({systemAnomalies: this.state.systemAnomalies.map(a => ({...a, selected: !status}))});
+  }
+
+  async removeAnomalies() {
+    await sendMessageAndWaitResponse({
+      type: 'remove-anomalies',
+      anomalies: this.state.systemAnomalies.filter(a => a.selected).map(a => a.id),
+      systemId: this.state.system.id
+    });
+    sendMessage({type: 'load-tree', systemId: this.state.treeRootId});
+  }
+
   render() {
     return (<div className="Wormhole">
       <div className="Head">
@@ -181,12 +201,14 @@ class Wormhole extends Component {
           <div>
             <div className="table-actions">
               <button onClick={() => this.copyFromClipBoard()}>copy from clipboard</button>
-              <button>remove</button>
+              <button onClick={() => this.removeAnomalies()}>remove</button>
             </div>
             <table className="table-anomalies">
               <thead>
               <tr>
-                <th><input type="checkbox"/></th>
+                <th><input type="checkbox"
+                           onChange={() => this.allChecker()}
+                           checked={this.state.systemAnomalies.reduce((p, a) => p && a.selected, true)}/></th>
                 <th>ID</th>
                 <th>Type</th>
                 <th>Age</th>
@@ -196,7 +218,14 @@ class Wormhole extends Component {
               </thead>
               <tbody>
               {this.state.systemAnomalies.map((anomaly, index) => (<tr key={index}>
-                <td><input type="checkbox"/></td>
+                <td><input type="checkbox"
+                           checked={anomaly.selected}
+                           onChange={(e) => this.setState({
+                             systemAnomalies: this.state.systemAnomalies.map(a => a.id === anomaly.id ? {
+                               ...a,
+                               selected: e.target.checked
+                             } : a)
+                           })}/></td>
                 <td>{anomaly.id}</td>
                 <td>{anomaly.type}</td>
                 <td>{this.ageInMinutes(anomaly.expiration)}</td>
@@ -217,13 +246,15 @@ class Wormhole extends Component {
       </div>
       <div className="Body">
         <div className="graph-actions">
-          <div className={"graph-actions-tab " + (this.state.treeRootId === this.state.currentSystem.id ? 'active' : '')}
-               onClick={() => this.setSyncUserSystem()}>Follow
+          <div
+            className={"graph-actions-tab " + (this.state.treeRootId === this.state.currentSystem.id && this.state.syncUserSystem ? 'active' : '')}
+            onClick={() => this.setSyncUserSystem()}>Follow
           </div>
           {this.state.treeRoots.map((t, index) => (
             <div key={index}
-                 className={"graph-actions-tab " + (this.state.treeRootId === t.id ? 'active' : '')}
-                 onClick={() => this.setSyncUserSystem(t)}>{t.name}<div style={{width: "100%"}}/>
+                 className={"graph-actions-tab " + (this.state.treeRootId === t.id && !this.state.syncUserSystem ? 'active' : '')}
+                 onClick={() => this.setSyncUserSystem(t)}>{t.name}
+              <div style={{width: "100%"}}/>
               <a className="remove" onClick={(e) => this.removeTab(e, t.id)}>x</a></div>))}
           {/*<div className="graph-actions-tab">+</div>*/}
         </div>

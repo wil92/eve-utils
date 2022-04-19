@@ -94,6 +94,13 @@ module.exports = (window) => {
         await this.sendSystemAnomalies(data.systemId, data.id);
       });
 
+      ipcMain.on('remove-anomalies', async (event, data) => {
+        for (let i = 0; i < data.anomalies.length; i++) {
+          await dataService.removeAnomalyById(data.anomalies[i], data.systemId);
+        }
+        await this.sendSystemAnomalies(data.systemId, data.id);
+      });
+
       ipcMain.on('update-anomaly-destination', async (event, data) => {
         const destinationSys = await dataService.getSystemByName(data.destinationName);
         const anomaly = await dataService.loadAnomalyById(data.anomalyId);

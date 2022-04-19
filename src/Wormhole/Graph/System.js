@@ -54,7 +54,7 @@ class System extends Component {
           </div>
         </div>
         {!this.state.system.info.root &&
-        <div className="EditButton" onClick={() => this.openEditAnomalyModal()}>?</div>}
+        <div className="EditButton" onClick={() => this.openEditAnomalyModal()}>*</div>}
         <div className="SunOver"/>
         <div className="Sun"/>
         <div className="Name"

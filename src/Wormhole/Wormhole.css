@@ -49,6 +49,7 @@
     cursor: pointer;
     display: flex;
     flex-direction: row;
+    white-space: nowrap;
 }
 
 .active {
@@ -62,4 +63,5 @@
 
 .remove:hover {
     font-weight: bold;
+    cursor: pointer;
 }

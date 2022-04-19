@@ -209,8 +209,7 @@ module.exports = {
 
         for (let i = 0; i < oldAnomalies.length; i++) {
           if (!used.has(oldAnomalies[i].id)) {
-            // this.removeAnomalyById(oldAnomalies[i].id);
-            database.run('DELETE FROM anomaly WHERE id=?;', [oldAnomalies[i].id]);
+            this.removeAnomalyById(oldAnomalies[i].id, systemId);
           }
         }
 
@@ -241,11 +240,12 @@ module.exports = {
 
   /**
    * @param anomalyId {string}
+   * @param systemId {number}
    * @return {Promise<unknown>}
    */
-  async removeAnomalyById(anomalyId) {
+  async removeAnomalyById(anomalyId, systemId) {
     return new Promise((resolve, reject) => {
-      database.run('DELETE FROM anomaly WHERE id="?";', [anomalyId], err => err ? reject(err) : resolve());
+      database.run('DELETE FROM anomaly WHERE id=? AND system_id=?;', [anomalyId, systemId], err => err ? reject(err) : resolve());
     });
   },
 
