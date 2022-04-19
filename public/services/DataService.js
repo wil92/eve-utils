@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require("path");
-
+const semver = require('semver');
 const sqlite = require('sqlite3').verbose();
 
 const httpService = require('./HttpService');
@@ -13,14 +13,42 @@ module.exports = {
   async initDatabase(savePath) {
     const dbPath = path.join(savePath, databaseName);
     console.log(dbPath);
+    const lastDBName = await this.getLastAvailableDBVersion();
 
     if (!fs.existsSync(dbPath)) {
-      const versionsUrl = `https://eveutils.guilledev.com/db-versions`;
-      const versions = await httpService.utilsGET(versionsUrl);
-      const downloadUrl = `https://eveutils.guilledev.com/download/${versions[0]}`;
-      await httpService.utilsDownload(downloadUrl, dbPath);
+      await this.downloadDB(lastDBName, dbPath);
     }
     database = new sqlite.Database(dbPath);
+
+    const currentDBVersion = await this.loadValue('version');
+    console.log(lastDBName);
+    if (lastDBName && currentDBVersion !== this.extractVersion(lastDBName)) {
+      // toDo guille 19.04.22: safe user data is missing
+      this.terminateDBConnection();
+      await this.downloadDB(lastDBName, dbPath);
+      database = new sqlite.Database(dbPath);
+    }
+  },
+
+  async downloadDB(dbName, dbPath) {
+    const downloadUrl = `https://eveutils.guilledev.com/download/${dbName}`;
+    await httpService.utilsDownload(downloadUrl, dbPath);
+  },
+
+  async getLastAvailableDBVersion() {
+    const versionsUrl = `https://eveutils.guilledev.com/db-versions`;
+    const versions = await httpService.utilsGET(versionsUrl);
+    if (Array.isArray(versions)) {
+      return versions.sort((a, b) => semver.rcompare(this.extractVersion(a), this.extractVersion(b), null))[0];
+    }
+    return null;
+  },
+
+  /**
+   * @param name {string}
+   */
+  extractVersion(name) {
+    return /\d+.\d+(.\d+)*/.exec(name)[0];
   },
 
   async loadObjValue(key) {

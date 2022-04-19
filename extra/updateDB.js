@@ -102,6 +102,11 @@ async function initDatabase(ccpDB, version) {
 
   const ccpDatabase = new sqlite.Database(ccpDB);
 
+  // SET DB VERSION
+  const sqlNewVersion = 'INSERT INTO config (key, data) VALUES ("version", ?);';
+  await new Promise((resolve, reject) =>
+    database.run(sqlNewVersion, [version], (err) => err ? reject(err) : resolve()));
+
   // EVE_TYPE TABLE
   isVerbose && console.log('Start eve_type table synchronization');
   await syncAction(database, ccpDatabase,

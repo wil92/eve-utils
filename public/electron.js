@@ -1,6 +1,6 @@
 const path = require('path');
 
-const {app, BrowserWindow, Menu} = require('electron');
+const {app, BrowserWindow} = require('electron');
 
 const dataService = require('./services/DataService');
 const logsService = require("./services/LogsService");

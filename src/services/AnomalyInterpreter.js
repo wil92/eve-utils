@@ -23,7 +23,7 @@ export function isDistanceToken(str) {
 export class SintacticAnalyser {
   constructor(text) {
     this.ptn = 0;
-    this.text = text.replaceAll(/\s(\s)+/g, '\t');
+    this.text = text.replaceAll('  ', '\t');
     this.token = '';
     this.tokens = [];
   }

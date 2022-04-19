@@ -238,7 +238,7 @@ module.exports = (window) => {
       periodService.startTimer();
       return window.loadURL(
         isDev
-          ? 'http://localhost:3000'
+          ? `http://localhost:${process.env.PORT || 3000}`
           : url.format({
             pathname: path.join(__dirname, '../index.html'),
             protocol: 'file',

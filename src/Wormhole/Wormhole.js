@@ -122,6 +122,7 @@ class Wormhole extends Component {
     const text = await navigator.clipboard.readText();
     const analyser = new LexicoAnalyser(text);
     const anomalies = analyser.readAnomalies();
+    console.log(anomalies)
     await sendMessageAndWaitResponse({type: 'save-anomalies', anomalies, systemId: this.state.system.id});
     sendMessage({type: 'load-tree', systemId: this.state.treeRootId});
   }
