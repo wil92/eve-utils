@@ -44,11 +44,22 @@
 
 .graph-actions-tab {
     padding: 5px 10px;
+    width: 60px;
     font-size: 14px;
     cursor: pointer;
+    display: flex;
+    flex-direction: row;
 }
 
-.graph-actions-tab .active {
+.active {
     cursor: initial;
-    background-color: #5a5b5e;
+    background-color: #5a5b5e !important;
+}
+
+.remove {
+    font-weight: lighter;
+}
+
+.remove:hover {
+    font-weight: bold;
 }

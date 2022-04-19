@@ -41,6 +41,7 @@ class Wormhole extends Component {
       },
       // navigation tree
       treeRootId: 0,
+      treeRoots: [],
       syncUserSystem: true,
       // attributes
       editAnomaly: false,
@@ -74,13 +75,11 @@ class Wormhole extends Component {
             name: message.location.system.name,
             class: message.location.system['system_class'],
             id: message.location.system.id
-          }
+          },
+          treeRootId: message.location.system.id,
         });
+        sendMessage({type: 'load-tree', systemId: message.location.system.id});
       }
-      this.setState({
-        treeRootId: message.location.system.id,
-      });
-      sendMessage({type: 'load-tree', systemId: message.location.system.id});
     });
     this.subscription = observable.pipe(filter(m => m.type === 'load-anomalies-response'), takeUntil(this.unsubscribe)).subscribe(message => {
       this.setState({systemAnomalies: message.anomalies.map(a => ({...a, link: linksMap.get(a.name.toUpperCase())}))});
@@ -99,10 +98,45 @@ class Wormhole extends Component {
     });
 
     sendMessage({type: 'get-current-location'});
+    this.loadTabs().then();
   }
 
   componentWillUnmount() {
     this.unsubscribe.next(true);
+  }
+
+  async saveTabs(tabId, tabName) {
+    if (!this.state.treeRoots.some(t => t.id === tabId)) {
+      const list = [...this.state.treeRoots, {id: tabId, name: tabName}];
+      await sendMessageAndWaitResponse({type: 'save-value', key: 'tabs', value: list});
+      await this.loadTabs();
+    }
+  }
+
+  async removeTab(e, tabId) {
+    e.stopPropagation();
+    const value = this.state.treeRoots.filter(t => t.id !== tabId);
+    await sendMessageAndWaitResponse({type: 'save-value', key: 'tabs', value});
+    await this.loadTabs();
+  }
+
+  async loadTabs() {
+    const value = (await sendMessageAndWaitResponse({type: 'load-value', key: 'tabs'})).value;
+    try {
+      const treeRoots = JSON.parse(value);
+      this.setState({treeRoots});
+    } catch (e) {
+    }
+  }
+
+  setSyncUserSystem(rootSystem) {
+    if (rootSystem) {
+      this.setState({treeRootId: rootSystem.id, syncUserSystem: false});
+      sendMessage({type: 'load-tree', systemId: rootSystem.id});
+    } else {
+      this.setState({treeRootId: this.state.currentSystem, syncUserSystem: true});
+      sendMessage({type: 'load-tree', systemId: this.state.currentSystem.id});
+    }
   }
 
   async copyFromClipBoard() {
@@ -133,7 +167,6 @@ class Wormhole extends Component {
 
   openEditAnomalyModal(anomalyId, leadsToName = '', parentName) {
     this.setState({editAnomaly: true, anomalyId, leadsToName, parentName});
-
   }
 
   render() {
@@ -143,6 +176,7 @@ class Wormhole extends Component {
           <div className="current-anomaly-status">
             <div>{this.state.system.name}</div>
             <div>{this.state.system.class}</div>
+            <button onClick={() => this.saveTabs(this.state.system.id, this.state.system.name)}>mark</button>
           </div>
           <div>
             <div className="table-actions">
@@ -183,8 +217,14 @@ class Wormhole extends Component {
       </div>
       <div className="Body">
         <div className="graph-actions">
-          <div className="graph-actions-tab active">Follow ship</div>
-          {/*<div className="graph-actions-tab">J111255</div>*/}
+          <div className={"graph-actions-tab " + (this.state.treeRootId === this.state.currentSystem.id ? 'active' : '')}
+               onClick={() => this.setSyncUserSystem()}>Follow
+          </div>
+          {this.state.treeRoots.map((t, index) => (
+            <div key={index}
+                 className={"graph-actions-tab " + (this.state.treeRootId === t.id ? 'active' : '')}
+                 onClick={() => this.setSyncUserSystem(t)}>{t.name}<div style={{width: "100%"}}/>
+              <a className="remove" onClick={(e) => this.removeTab(e, t.id)}>x</a></div>))}
           {/*<div className="graph-actions-tab">+</div>*/}
         </div>
         <Graph openEditAnomalyModal={this.openEditAnomalyModal.bind(this)}/>
