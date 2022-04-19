@@ -13,6 +13,7 @@
 .data-container {
     display: flex;
     flex-direction: row;
+    justify-content: center;
 }
 
 .table-anomalies-container {
@@ -44,7 +45,7 @@
 
 .graph-actions-tab {
     padding: 5px 10px;
-    width: 60px;
+    width: 80px;
     font-size: 14px;
     cursor: pointer;
     display: flex;
@@ -64,4 +65,14 @@
 .remove:hover {
     font-weight: bold;
     cursor: pointer;
+}
+
+.add-button {
+    font-weight: lighter;
+    color: #ccff33;
+}
+
+.add-button:hover {
+    cursor: pointer;
+    font-weight: bold;
 }

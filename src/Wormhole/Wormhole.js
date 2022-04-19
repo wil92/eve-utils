@@ -189,14 +189,35 @@ class Wormhole extends Component {
     sendMessage({type: 'load-tree', systemId: this.state.treeRootId});
   }
 
+  getClassColor(c) {
+    switch (c) {
+      case 'HS':
+        return '#90be6d';
+      case 'LS':
+        return '#f8961e';
+      case 'NS':
+      default:
+        return '#f94144';
+    }
+  }
+
   render() {
     return (<div className="Wormhole">
       <div className="Head">
         <div className="data-container">
           <div className="current-anomaly-status">
-            <div>{this.state.system.name}</div>
-            <div>{this.state.system.class}</div>
-            <button onClick={() => this.saveTabs(this.state.system.id, this.state.system.name)}>mark</button>
+            <div style={{fontSize: "14px", display: "flex", flexDirection: "row", justifyContent: "center"}}>
+              Current system: {this.state.currentSystem.name}&#160;&#160;
+              <div className="add-button">&#187;</div>
+            </div>
+            <hr style={{width: "100%"}}/>
+            <div style={{fontSize: "20px", display: "flex", flexDirection: "row", justifyContent: "center"}}>
+              {this.state.system.name} (<span
+              style={{color: this.getClassColor(this.state.system.class)}}>{this.state.system.class}</span>)&#160;&#160;
+              <div className="add-button"
+                   onClick={() => this.saveTabs(this.state.system.id, this.state.system.name)}>+
+              </div>
+            </div>
           </div>
           <div>
             <div className="table-actions">
@@ -255,8 +276,7 @@ class Wormhole extends Component {
                  className={"graph-actions-tab " + (this.state.treeRootId === t.id && !this.state.syncUserSystem ? 'active' : '')}
                  onClick={() => this.setSyncUserSystem(t)}>{t.name}
               <div style={{width: "100%"}}/>
-              <a className="remove" onClick={(e) => this.removeTab(e, t.id)}>x</a></div>))}
-          {/*<div className="graph-actions-tab">+</div>*/}
+              <a className="remove" onClick={(e) => this.removeTab(e, t.id)}>×</a></div>))}
         </div>
         <Graph openEditAnomalyModal={this.openEditAnomalyModal.bind(this)}/>
       </div>
