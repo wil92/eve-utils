@@ -54,7 +54,7 @@ This is a script that take the information out of the latest version of EVE onli
 
 ### Steps to update the database (dev perspective)
 
-The developer needs to start the *updateDB.js* script. This script generate automatically the new DB version, base on the latest CCP DB provided.
+The developer needs to start the *setup.js* script. This script generate automatically the new DB version, base on the latest CCP DB provided.
 
 ### Application automatic DB update (behavior)
 

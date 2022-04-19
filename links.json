@@ -2,12 +2,156 @@
   "version": "1.1.0",
   "links": [
     {
+      "name": "Angel Burrow",
+      "url": "https://eve-survival.org/wikka.php?"
+    },
+    {
+      "name": "Angel Den",
+      "url": "https://eve-survival.org/wikka.php?wakka=AngelDen"
+    },
+    {
+      "name": "Angel Forlorn Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=AngelForlornHideaway"
+    },
+    {
+      "name": "Angel Haven",
+      "url": "https://eve-survival.org/wikka.php?wakka=AngelHaven"
+    },
+    {
       "name": "Angel Hidden Hideaway",
       "url": "https://eve-survival.org/wikka.php?wakka=AngelHiddenHideaway"
     },
     {
+      "name": "Angel Hidden Hub",
+      "url": "https://eve-survival.org/wikka.php?wakka=AngelHiddenHub"
+    },
+    {
+      "name": "Angel Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=AngelHideaway"
+    },
+    {
+      "name": "Angel Hub",
+      "url": "https://eve-survival.org/wikka.php?wakka=AngelHub"
+    },
+    {
+      "name": "Angel Port",
+      "url": "https://eve-survival.org/wikka.php?wakka=AngelPort"
+    },
+    {
+      "name": "Angel Refuge",
+      "url": "https://eve-survival.org/wikka.php?wakka=AngelRefuge"
+    },
+    {
+      "name": "Blood Den",
+      "url": "https://eve-survival.org/wikka.php?wakka=BloodDen"
+    },
+    {
+      "name": "Blood Forsaken Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=BloodForsakenHideaway"
+    },
+    {
+      "name": "Blood Forsaken Hub",
+      "url": "https://eve-survival.org/wikka.php?wakka=BloodForsakenHub"
+    },
+    {
+      "name": "Blood Hidden Den",
+      "url": "https://eve-survival.org/wikka.php?wakka=BloodHiddenHub"
+    },
+    {
+      "name": "Blood Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=BloodHideaway"
+    },
+    {
+      "name": "Blood Hub",
+      "url": "https://eve-survival.org/wikka.php?wakka=BloodHub"
+    },
+    {
+      "name": "Blood Port",
+      "url": "https://eve-survival.org/wikka.php?wakka=BloodPort"
+    },
+    {
+      "name": "Blood Raider Forlorn Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=BloodRaiderForlornHideaway"
+    },
+    {
+      "name": "Blood Rally Point",
+      "url": "https://eve-survival.org/wikka.php?wakka=BloodRallyPoint"
+    },
+    {
+      "name": "Blood Refuge",
+      "url": "https://eve-survival.org/wikka.php?wakka=BloodRefuge"
+    },
+    {
+      "name": "Blood Yard",
+      "url": "https://eve-survival.org/wikka.php?wakka=BloodYard"
+    },
+    {
+      "name": "Drone Assembly",
+      "url": "https://eve-survival.org/wikka.php?wakka=DroneAssembly"
+    },
+    {
+      "name": "Drone Cluster",
+      "url": "https://eve-survival.org/wikka.php?wakka=DroneCluster"
+    },
+    {
+      "name": "Drone Collection",
+      "url": "https://eve-survival.org/wikka.php?wakka=DroneCollection"
+    },
+    {
+      "name": "Drone Horde",
+      "url": "https://eve-survival.org/wikka.php?wakka=DroneHorde"
+    },
+    {
+      "name": "Fortification Frontier Stronghold",
+      "url": "https://eve-survival.org/wikka.php?wakka=FortificationFrontierStronghold"
+    },
+    {
+      "name": "Guristas Burrow",
+      "url": "https://eve-survival.org/wikka.php?wakka=GuristasBurrow"
+    },
+    {
+      "name": "Guristas Forlorn Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=GuristasForlornHideaway"
+    },
+    {
+      "name": "Guristas Forlorn Hub",
+      "url": "https://eve-survival.org/wikka.php?wakka=GuristasForlornHub"
+    },
+    {
+      "name": "Guristas Forsaken Den",
+      "url": "https://eve-survival.org/wikka.php?wakka=GuristasDen"
+    },
+    {
+      "name": "Guristas Forsaken Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=GuristasForsakenHideaway"
+    },
+    {
+      "name": "Guristas Hidden Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=GuristasHiddenHideaway"
+    },
+    {
+      "name": "Guristas Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=GuristasHideaway"
+    },
+    {
+      "name": "Guristas Hub",
+      "url": "https://eve-survival.org/wikka.php?wakka=GuristasHub"
+    },
+    {
+      "name": "Guristas Refuge",
+      "url": "https://eve-survival.org/wikka.php?wakka=GuristasRefuge"
+    },
+    {
       "name": "Isolated Core Deposit",
       "url": "https://eve-survival.org/wikka.php?wakka=IsolatedCoreDeposit"
+    },
+    {
+      "name": "Ordinary Perimeter Deposit",
+      "url": "https://eve-survival.org/wikka.php?wakka=OrdinaryPerimeterDeposit"
+    },
+    {
+      "name": "Outpost Frontier Stronghold",
+      "url": "https://eve-survival.org/wikka.php?wakka=OutpostFrontierStronghold"
     },
     {
       "name": "Perimeter Checkpoint",
@@ -18,20 +162,84 @@
       "url": "https://eve-survival.org/wikka.php?wakka=PerimeterHangar"
     },
     {
+      "name": "Sansha Forlorn Rally Point",
+      "url": "https://eve-survival.org/wikka.php?wakka=SanshaForlornRallyPoint"
+    },
+    {
+      "name": "Sansha Forsaken Hub",
+      "url": "https://eve-survival.org/wikka.php?wakka=SanshaForsakenHub"
+    },
+    {
+      "name": "Sansha Forsaken Rally Point",
+      "url": "https://eve-survival.org/wikka.php?wakka=SanshaForsakenRallyPoint"
+    },
+    {
+      "name": "Sansha Haven",
+      "url": "https://eve-survival.org/wikka.php?wakka=SanshaHaven"
+    },
+    {
       "name": "Sansha Hidden Hideaway",
       "url": "https://wiki.eveuniversity.org/Sansha_Hidden_Hideaway"
+    },
+    {
+      "name": "Sansha Hidden Hub",
+      "url": "https://eve-survival.org/wikka.php?wakka=SanshaHiddenHub"
+    },
+    {
+      "name": "Sansha Hidden Rally Point",
+      "url": "https://eve-survival.org/wikka.php?wakka=SanshaHiddenRallyPoint"
     },
     {
       "name": "Sansha Hideaway",
       "url": "https://wiki.eveuniversity.org/Sansha_Hideaway"
     },
     {
+      "name": "Sansha Hub",
+      "url": "https://eve-survival.org/wikka.php?wakka=SanshaHub"
+    },
+    {
+      "name": "Sansha Port",
+      "url": "https://eve-survival.org/wikka.php?wakka=SanshaPort"
+    },
+    {
+      "name": "Sansha Rally Point",
+      "url": "https://eve-survival.org/wikka.php?wakka=SanshaRallyPoint"
+    },
+    {
       "name": "Sansha Refuge",
       "url": "https://wiki.eveuniversity.org/Sansha_Refuge"
     },
     {
+      "name": "Serpentis Burrow",
+      "url": "https://eve-survival.org/wikka.php?wakka=SerpentisBurrow"
+    },
+    {
+      "name": "Serpentis Forlorn Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=SerpentisForlornHideaway"
+    },
+    {
+      "name": "Serpentis Forsaken Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=SerpentisForsakenHideaway"
+    },
+    {
+      "name": "Serpentis Forsaken Hub",
+      "url": "https://eve-survival.org/wikka.php?wakka=SerpentisForsakenHub"
+    },
+    {
+      "name": "Serpentis Hideaway",
+      "url": "https://eve-survival.org/wikka.php?wakka=SerpentisHideaway"
+    },
+    {
+      "name": "Serpentis Refuge",
+      "url": "https://eve-survival.org/wikka.php?wakka=SerpentisRefuge"
+    },
+    {
       "name": "Sleeper Data Sanctuary",
       "url": "https://eve-survival.org/wikka.php?wakka=SleeperDataSanctuary"
+    },
+    {
+      "name": "The Oruze Construct",
+      "url": "https://wiki.eveuniversity.org/The_Oruze_Construct"
     },
     {
       "name": "The Ruins of Enclave Cohort 27",

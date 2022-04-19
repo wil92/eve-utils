@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+const readline = require('readline');
 const path = require("path");
 const sqlite = require('sqlite3').verbose();
 const shell = require('vorpal')();
@@ -155,6 +156,49 @@ shell
   .action((args, cb) => {
     isVerbose = args.options['verbose'];
     initDatabase(args['ccpDBPath'], args['dbVersion']).then(() => cb());
+  });
+
+async function readAttr(args) {
+  const rl = readline.createInterface({input: process.stdin, output: process.stdout});
+  if (!args.name) {
+    args.name = await new Promise(resolve => rl.question("name: ", ans => resolve(ans)));
+  }
+  if (!args.url) {
+    args.url = await new Promise(resolve => rl.question("url: ", ans => resolve(ans)));
+  }
+  rl.close();
+}
+
+async function newLink(args) {
+  await readAttr(args);
+
+  const linksFile = path.join(__dirname, '..', 'links.json');
+  const data = JSON.parse(fs.readFileSync(linksFile, "utf8"));
+  if (!data.links.some(value => value.name === args.name)) {
+    data.links.push({name: args.name, url: args.url});
+  }
+  data.links.sort((a, b) => a.name.localeCompare(b.name));
+  fs.writeFileSync(linksFile, JSON.stringify(data, null, '  '), "utf8");
+}
+
+async function readLinks() {
+  while (true) {
+    await newLink({});
+  }
+}
+
+shell
+  .command('new link [name] [url]')
+  .description('Add new links to the JSON file used by the application.')
+  .action((args, cb) => {
+    newLink(args).then(() => cb());
+  });
+
+shell
+  .command('new links')
+  .description('Add new links to the JSON file used by the application.')
+  .action((args, cb) => {
+    readLinks(args).then(() => cb());
   });
 
 shell

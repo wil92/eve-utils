@@ -53,7 +53,7 @@ class Wormhole extends Component {
 
   componentDidMount() {
     this.getLinks().then(data => {
-      (data.links || []).forEach(l => linksMap.set(l.name, l.url));
+      (data.links || []).forEach(l => linksMap.set(l.name.toUpperCase(), l.url));
       this.initialSetup();
     });
   }
@@ -89,7 +89,7 @@ class Wormhole extends Component {
       filter(m => m.type === 'load-anomalies-response'),
       takeUntil(this.unsubscribe)
     ).subscribe(message => {
-      this.setState({systemAnomalies: message.anomalies.map(a => ({...a, link: linksMap.get(a.name)}))});
+      this.setState({systemAnomalies: message.anomalies.map(a => ({...a, link: linksMap.get(a.name.toUpperCase())}))});
     });
     this.subscription = observable.pipe(
       filter(m => m.type === 'load-system-response'),
