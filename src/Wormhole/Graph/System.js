@@ -53,7 +53,7 @@ class System extends Component {
         <div className="SunOver"/>
         <div className="Sun"/>
         <div className="Name"
-             onClick={() => this.changeSelectedSystem(this.state.system.info.id)}>{this.state.system.info.name}</div>
+             onClick={() => this.changeSelectedSystem(this.state.system.info.id)}>{this.state.system.info.name || '?'}</div>
       </div>
     );
   }

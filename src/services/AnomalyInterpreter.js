@@ -105,8 +105,10 @@ export const ANOMALY_TYPE_UNKNOWN = 'Unknown';
 
 export class LexicoAnalyser {
   constructor(text) {
+    console.log(text)
     const sintacticAnalyser = new SintacticAnalyser(text);
     this.tokens = sintacticAnalyser.calculateTokens();
+    console.log(this.tokens);
     this.ptr = 0;
     this.step = 0;
 
