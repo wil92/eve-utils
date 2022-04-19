@@ -14,7 +14,8 @@ class System extends Component {
       system: props.system,
       editSystem: false,
       leadsToName: props.system.info.name,
-      anomalyId: props.system.wormholeParent && props.system.wormholeParent.anomaly.id
+      anomalyId: props.system.wormholeParent && props.system.wormholeParent.anomaly.id,
+      parentName: props.system?.wormholeParent?.origin?.wormholeParent?.origin?.info?.name
     };
 
     this.handleTransform = this.handleTransform.bind(this);
@@ -25,11 +26,15 @@ class System extends Component {
   }
 
   async changeSelectedSystem(systemId) {
-    sendMessage({type: 'load-system', systemId});
+    if (systemId) {
+      sendMessage({type: 'load-system', systemId});
+    } else {
+      this.openEditAnomalyModal();
+    }
   }
 
   openEditAnomalyModal() {
-    this.props.openEditAnomalyModal(this.state.system.wormholeParent.anomaly.id, this.state.leadsToName);
+    this.props.openEditAnomalyModal(this.state.system.wormholeParent.anomaly.id, this.state.leadsToName, this.state.parentName);
   }
 
   render() {

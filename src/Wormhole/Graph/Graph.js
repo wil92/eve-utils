@@ -6,6 +6,7 @@ import {SystemModel, WormholeModel} from "./GraphModels";
 import Path from "./Path";
 import {observable} from "../../services/MessageHandler";
 import {filter, Subject, takeUntil} from "rxjs";
+import {bfsOverTree, updateTree} from "../../services/TreeService";
 
 const scaleDelta = 0.001;
 const marginHeight = 30;
@@ -86,6 +87,7 @@ class Graph extends Component {
       this.setState({systemTree});
       this.calculateTreePositions(systemTree);
       this.calculatePaths(systemTree);
+      updateTree(systemTree);
     });
   }
 
@@ -145,12 +147,12 @@ class Graph extends Component {
     this.calculateTree(system, 0, 20);
 
     let minX = Number.MAX_SAFE_INTEGER, maxX = Number.MIN_SAFE_INTEGER;
-    this.bfsOverTree(system, (ele) => {
+    bfsOverTree(system, (ele) => {
       minX = Math.min(minX, ele.position.x);
       maxX = Math.max(maxX, ele.position.x);
     });
     const systems = [];
-    this.bfsOverTree(system, (ele) => {
+    bfsOverTree(system, (ele) => {
       ele.position.x -= (maxX - minX);
       systems.push(ele);
       (ele.wormholes || []).forEach(w => w.destination.wormholeParent = w);
@@ -161,7 +163,7 @@ class Graph extends Component {
   calculatePaths(system) {
     const paths = [];
 
-    this.bfsOverTree(system, (ele) => {
+    bfsOverTree(system, (ele) => {
       for (let i = 0; i < ele.wormholes.length; i++) {
         paths.push(this.buildPathInBetween(ele, ele.wormholes[i].destination));
       }
@@ -180,17 +182,6 @@ class Graph extends Component {
       h: Math.abs(systemParent.getCenter().y - systemChild.getCenter().y)
     };
     return {position, shape, invert: systemParent.position.x < systemChild.position.x};
-  }
-
-  bfsOverTree(system, callback) {
-    const queue = [system];
-    while (queue.length > 0) {
-      const ele = queue.shift();
-      callback(ele);
-      for (let i = 0; i < ele.wormholes.length; i++) {
-        queue.push(ele.wormholes[i].destination);
-      }
-    }
   }
 
   /**

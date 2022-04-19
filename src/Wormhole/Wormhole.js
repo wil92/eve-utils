@@ -7,6 +7,7 @@ import './Wormhole.css';
 import {observable, sendMessage, sendMessageAndWaitResponse} from "../services/MessageHandler";
 import {ANOMALY_TYPE_WORMHOLE, LexicoAnalyser} from "../services/AnomalyInterpreter";
 import Graph from "./Graph/Graph";
+import {getParentName} from "../services/TreeService";
 
 const linksMap = new Map();
 
@@ -41,11 +42,11 @@ class Wormhole extends Component {
       // navigation tree
       treeRootId: 0,
       syncUserSystem: true,
-
       // attributes
       editAnomaly: false,
       anomalyId: '',
-      leadsToName: ''
+      leadsToName: '',
+      parentName: ''
     };
 
     this.unsubscribe = new Subject();
@@ -64,11 +65,7 @@ class Wormhole extends Component {
   }
 
   initialSetup() {
-    this.subscription = observable.pipe(
-      filter(m => m.type === 'get-current-location-response'),
-      filter(m => m.location.system.id !== this.state.currentSystem.id),
-      takeUntil(this.unsubscribe)
-    ).subscribe(message => {
+    this.subscription = observable.pipe(filter(m => m.type === 'get-current-location-response'), filter(m => m.location.system.id !== this.state.currentSystem.id), takeUntil(this.unsubscribe)).subscribe(message => {
       this.setState({currentSystem: message.location.system});
       if (this.state.syncUserSystem) {
         sendMessage({type: 'load-anomalies', systemId: message.location.system.id});
@@ -85,30 +82,20 @@ class Wormhole extends Component {
       });
       sendMessage({type: 'load-tree', systemId: message.location.system.id});
     });
-    this.subscription = observable.pipe(
-      filter(m => m.type === 'load-anomalies-response'),
-      takeUntil(this.unsubscribe)
-    ).subscribe(message => {
+    this.subscription = observable.pipe(filter(m => m.type === 'load-anomalies-response'), takeUntil(this.unsubscribe)).subscribe(message => {
       this.setState({systemAnomalies: message.anomalies.map(a => ({...a, link: linksMap.get(a.name.toUpperCase())}))});
     });
-    this.subscription = observable.pipe(
-      filter(m => m.type === 'load-system-response'),
-      takeUntil(this.unsubscribe)
-    ).subscribe(message => {
+    this.subscription = observable.pipe(filter(m => m.type === 'load-system-response'), takeUntil(this.unsubscribe)).subscribe(message => {
       this.setState({
         system: {
-          name: message.system.name,
-          class: message.system['system_class'],
-          id: message.system.id
+          name: message.system.name, class: message.system['system_class'], id: message.system.id
         }
       });
       sendMessage({type: 'load-anomalies', systemId: message.system.id});
     });
-    this.subscription = observable.pipe(
-      filter(m => m.type === 'update-anomaly-destination-response'),
-      takeUntil(this.unsubscribe)
-    ).subscribe(message => {
+    this.subscription = observable.pipe(filter(m => m.type === 'update-anomaly-destination-response'), takeUntil(this.unsubscribe)).subscribe(message => {
       sendMessage({type: 'load-tree', systemId: this.state.treeRootId});
+      sendMessage({type: 'load-anomalies', systemId: this.state.system.id});
     });
 
     sendMessage({type: 'get-current-location'});
@@ -144,88 +131,93 @@ class Wormhole extends Component {
     this.setState({editAnomaly: false});
   }
 
-  openEditAnomalyModal(anomalyId, leadsToName) {
-    this.setState({editAnomaly: true, anomalyId, leadsToName});
+  openEditAnomalyModal(anomalyId, leadsToName = '', parentName) {
+    this.setState({editAnomaly: true, anomalyId, leadsToName, parentName});
+
   }
 
   render() {
-    return (
-      <div className="Wormhole">
-        <div className="Head">
-          <div className="data-container">
-            <div className="current-anomaly-status">
-              <div>{this.state.system.name}</div>
-              <div>{this.state.system.class}</div>
+    return (<div className="Wormhole">
+      <div className="Head">
+        <div className="data-container">
+          <div className="current-anomaly-status">
+            <div>{this.state.system.name}</div>
+            <div>{this.state.system.class}</div>
+          </div>
+          <div>
+            <div className="table-actions">
+              <button onClick={() => this.copyFromClipBoard()}>copy from clipboard</button>
+              <button>remove</button>
             </div>
-            <div>
-              <div className="table-actions">
-                <button onClick={() => this.copyFromClipBoard()}>copy from clipboard</button>
-                <button>remove</button>
-              </div>
-              <table className="table-anomalies">
-                <thead>
-                <tr>
-                  <th><input type="checkbox"/></th>
-                  <th>ID</th>
-                  <th>Type</th>
-                  <th>Age</th>
-                  <th>Name/LeadsTo</th>
-                  <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {this.state.systemAnomalies.map((anomaly, index) => (<tr key={index}>
-                    <td><input type="checkbox"/></td>
-                    <td>{anomaly.id}</td>
-                    <td>{anomaly.type}</td>
-                    <td>{this.ageInMinutes(anomaly.expiration)}</td>
-                    {anomaly.type === ANOMALY_TYPE_WORMHOLE ? (<td>{anomaly['system_name'] && <a
-                      onClick={() => this.changeSelectedSystem(anomaly['system_destination'])}>{anomaly['system_name']}</a>}</td>) : (
-                      <td>{anomaly.link ? (
-                        <a href={anomaly.link} target="_blank">{anomaly.name}</a>) : anomaly.name}</td>)}
-                    <td>
-                      <button onClick={() => this.openEditAnomalyModal(anomaly.id, anomaly['system_name'])}>Edit</button>
-                    </td>
-                  </tr>)
-                )}
-                </tbody>
-              </table>
-            </div>
+            <table className="table-anomalies">
+              <thead>
+              <tr>
+                <th><input type="checkbox"/></th>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Age</th>
+                <th>Name/LeadsTo</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              {this.state.systemAnomalies.map((anomaly, index) => (<tr key={index}>
+                <td><input type="checkbox"/></td>
+                <td>{anomaly.id}</td>
+                <td>{anomaly.type}</td>
+                <td>{this.ageInMinutes(anomaly.expiration)}</td>
+                {anomaly.type === ANOMALY_TYPE_WORMHOLE ? (<td>{anomaly['system_name'] && <a
+                  onClick={() => this.changeSelectedSystem(anomaly['system_destination'])}>{anomaly['system_name']}</a>}</td>) : (
+                  <td>{anomaly.link ? (
+                    <a href={anomaly.link} target="_blank">{anomaly.name}</a>) : anomaly.name}</td>)}
+                <td>
+                  {anomaly.type === 'Wormhole' && <button
+                    onClick={() => this.openEditAnomalyModal(anomaly.id, anomaly['system_name'], getParentName(this.state.system.id))}>Edit
+                  </button>}
+                </td>
+              </tr>))}
+              </tbody>
+            </table>
           </div>
         </div>
-        <div className="Body">
-          <div className="graph-actions">
-            <div className="graph-actions-tab active">Follow ship</div>
-            {/*<div className="graph-actions-tab">J111255</div>*/}
-            {/*<div className="graph-actions-tab">+</div>*/}
-          </div>
-          <Graph openEditAnomalyModal={this.openEditAnomalyModal.bind(this)}/>
+      </div>
+      <div className="Body">
+        <div className="graph-actions">
+          <div className="graph-actions-tab active">Follow ship</div>
+          {/*<div className="graph-actions-tab">J111255</div>*/}
+          {/*<div className="graph-actions-tab">+</div>*/}
         </div>
+        <Graph openEditAnomalyModal={this.openEditAnomalyModal.bind(this)}/>
+      </div>
 
-        <Modal isOpen={this.state.editAnomaly}
-               onRequestClose={() => this.setState({editAnomaly: false})}
-               style={{content: {...customStyles.content, width: '300px', height: 'auto', overflow: 'hidden'}}}>
-          <button className="CloseButton"
-                  onClick={() => this.setState({editAnomaly: false})}>
-            x
-          </button>
-          <h3>{this.state.anomalyId}</h3>
-          <p></p>
-          <div style={{display: 'flex', flexDirection: 'column'}}>
-            <label htmlFor="selectRegionsToGetOrders">Leads to</label>
+      <Modal isOpen={this.state.editAnomaly}
+             onRequestClose={() => this.setState({editAnomaly: false})}
+             style={{content: {...customStyles.content, width: '300px', height: 'auto', overflow: 'hidden'}}}>
+        <button className="CloseButton"
+                onClick={() => this.setState({editAnomaly: false})}>
+          x
+        </button>
+        <h3>{this.state.anomalyId}</h3>
+        <p></p>
+        <div style={{display: 'flex', flexDirection: 'column'}}>
+          <label htmlFor="selectRegionsToGetOrders">Leads to</label>
+          <div style={{display: 'flex', flexDirection: 'row'}}>
             <input type="text"
+                   style={{width: '100%'}}
                    value={this.state.leadsToName}
                    onChange={e => this.setState({leadsToName: e.target.value})}/>
-            ------------------------------------
-            <button className="Button"
-                    style={{margin: '10px 0', width: '100%'}}
-                    onClick={() => this.editAnomaly()}>
-              Update
-            </button>
+            {this.state.parentName && <button
+              onClick={() => this.setState({leadsToName: this.state.parentName})}>{this.state.parentName}</button>}
           </div>
-        </Modal>
-      </div>
-    );
+          ------------------------------------
+          <button className="Button"
+                  style={{margin: '10px 0', width: '100%'}}
+                  onClick={() => this.editAnomaly()}>
+            Update
+          </button>
+        </div>
+      </Modal>
+    </div>);
   }
 }
 
