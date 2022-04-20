@@ -129,7 +129,7 @@ class Wormhole extends Component {
   async loadTabs() {
     const value = (await sendMessageAndWaitResponse({type: 'load-value', key: 'tabs'})).value;
     try {
-      const treeRoots = JSON.parse(value);
+      const treeRoots = JSON.parse(value) || [];
       this.setState({treeRoots});
     } catch (e) {
     }
@@ -271,7 +271,7 @@ class Wormhole extends Component {
             className={"graph-actions-tab " + (this.state.treeRootId === this.state.currentSystem.id && this.state.syncUserSystem ? 'active' : '')}
             onClick={() => this.setSyncUserSystem()}>Follow
           </div>
-          {this.state.treeRoots.map((t, index) => (
+          {(this.state.treeRoots || []).map((t, index) => (
             <div key={index}
                  className={"graph-actions-tab " + (this.state.treeRootId === t.id && !this.state.syncUserSystem ? 'active' : '')}
                  onClick={() => this.setSyncUserSystem(t)}>{t.name}
