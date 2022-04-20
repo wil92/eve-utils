@@ -8,6 +8,8 @@ import {observable, sendMessage, sendMessageAndWaitResponse} from "../services/M
 import {ANOMALY_TYPE_WORMHOLE, LexicoAnalyser} from "../services/AnomalyInterpreter";
 import Graph from "./Graph/Graph";
 import {getParentName} from "../services/TreeService";
+import {connect} from "react-redux";
+import {updateCurrentSystem} from "../redux/store";
 
 const linksMap = new Map();
 
@@ -68,6 +70,7 @@ class Wormhole extends Component {
   initialSetup() {
     this.subscription = observable.pipe(filter(m => m.type === 'get-current-location-response'), filter(m => m.location.system.id !== this.state.currentSystem.id), takeUntil(this.unsubscribe)).subscribe(message => {
       this.setState({currentSystem: message.location.system});
+      this.props.updateCurrentSystem(message.location.system);
       if (this.state.syncUserSystem) {
         sendMessage({type: 'load-anomalies', systemId: message.location.system.id});
         this.setState({
@@ -312,4 +315,4 @@ class Wormhole extends Component {
   }
 }
 
-export default Wormhole;
+export default connect(() => ({}), {updateCurrentSystem})(Wormhole);

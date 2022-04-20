@@ -7,6 +7,7 @@
   "author": "Guillermo <ggjnez92@gmail.com>",
   "description": "EVE online utils",
   "dependencies": {
+    "@reduxjs/toolkit": "^1.8.1",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
@@ -18,6 +19,7 @@
     "react-image": "^4.0.3",
     "react-modal": "^3.14.4",
     "react-notifications": "^1.7.3",
+    "react-redux": "^8.0.0",
     "react-scripts": "5.0.0",
     "react-select": "^5.2.2",
     "react-tabs": "^4.2.0",

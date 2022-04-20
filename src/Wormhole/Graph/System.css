@@ -102,6 +102,15 @@
     border-radius: 50%;
     z-index: 0;
 }
+.SolarSystem .CurrentSystem {
+    color: black;
+    font-size: 12px;
+    font-weight: bold;
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    z-index: 100;
+}
 .SolarSystem .Name {
     color: black;
     font-size: 10px;

@@ -1,8 +1,9 @@
 import {Component} from "react";
-import Modal from "react-modal";
 
 import './System.css';
-import {sendMessage, sendMessageAndWaitResponse} from "../../services/MessageHandler";
+import {sendMessage} from "../../services/MessageHandler";
+import {updateCurrentSystem} from "../../redux/store";
+import {connect} from "react-redux";
 
 
 class System extends Component {
@@ -54,14 +55,19 @@ class System extends Component {
           </div>
         </div>
         {!this.state.system.info.root &&
-        <div className="EditButton" onClick={() => this.openEditAnomalyModal()}>*</div>}
+          <div className="EditButton" onClick={() => this.openEditAnomalyModal()}>*</div>}
         <div className="SunOver"/>
         <div className="Sun"/>
+        {this.props?.currentSystem?.id === this.state.system.info.id && <div className="CurrentSystem">🛸</div>}
         <div className="Name"
-             onClick={() => this.changeSelectedSystem(this.state.system.info.id)}>{this.state.system.info.name || '?'}</div>
+             onClick={() => this.changeSelectedSystem(this.state.system.info.id)}>
+          {this.state.system.info.name || '?'}
+        </div>
       </div>
     );
   }
 }
 
-export default System;
+export default connect(state => {
+  return ({currentSystem: state.wormhole.system})
+}, {})(System);
