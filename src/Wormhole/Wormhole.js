@@ -191,12 +191,31 @@ class Wormhole extends Component {
   }
 
   async removeAnomalies() {
-    await sendMessageAndWaitResponse({
-      type: 'remove-anomalies',
-      anomalies: this.state.systemAnomalies.filter(a => a.selected).map(a => a.id),
-      systemId: this.state.system.id
-    });
-    sendMessage({type: 'load-tree', systemId: this.state.treeRootId});
+    if (this.state.systemAnomalies.filter(a => a.selected).length > 0) {
+      await sendMessageAndWaitResponse({
+        type: 'remove-anomalies',
+        anomalies: this.state.systemAnomalies.filter(a => a.selected).map(a => a.id),
+        systemId: this.state.system.id
+      });
+      sendMessage({type: 'load-tree', systemId: this.state.treeRootId});
+    }
+  }
+
+  shortName(name) {
+    switch (name.toLowerCase()) {
+      case 'ore site':
+        return 'Ore';
+      case 'combat site':
+        return 'Combat';
+      case 'gas site':
+        return 'Gas';
+      case 'relic site':
+        return 'relic';
+      case 'data site':
+        return 'data';
+      default:
+        return name;
+    }
   }
 
   render() {
@@ -204,11 +223,18 @@ class Wormhole extends Component {
       <div className="Head">
         <div className="data-container">
           <div className="current-anomaly-status">
-            <div style={{fontSize: "14px", display: "flex", flexDirection: "row", justifyContent: "center"}}>
+            <div style={{
+              fontSize: "14px",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "center",
+              paddingTop: "5px"
+            }}>
               Current system: {this.state.currentSystem.name}&#160;&#160;
-              <div className="add-button" onClick={() => this.changeSelectedSystem(this.state.currentSystem.id)}>&#187;</div>
+              <div className="add-button"
+                   onClick={() => this.changeSelectedSystem(this.state.currentSystem.id)}>&#187;</div>
             </div>
-            <hr style={{width: "100%"}}/>
+            <hr style={{width: "100%", marginTop: "5px"}}/>
             <div style={{fontSize: "20px", display: "flex", flexDirection: "row", justifyContent: "center"}}>
               {this.state.system.name} (<span
               style={{color: getClassColor(this.state.system.class)}}>{this.state.system.class}</span>)&#160;&#160;
@@ -217,66 +243,77 @@ class Wormhole extends Component {
               </div>
             </div>
           </div>
-          <div>
+          <div className="table-anomalies-container">
             <div className="table-actions">
-              <button onClick={() => this.copyFromClipBoard()}>copy from clipboard</button>
-              <button onClick={() => this.removeAnomalies()}>remove</button>
+              <button className="Button"
+                      disabled={this.state.systemAnomalies.filter(a => a.selected).length === 0}
+                      onClick={() => this.removeAnomalies()}>remove
+              </button>
+              <button className="Button" onClick={() => this.copyFromClipBoard()}>copy from clipboard</button>
             </div>
-            <table className="table-anomalies">
-              <thead>
-              <tr>
-                <th><input type="checkbox"
-                           onChange={() => this.allChecker()}
-                           checked={this.state.systemAnomalies.reduce((p, a) => p && a.selected, true)}/></th>
-                <th>ID</th>
-                <th>Type</th>
-                <th>Age</th>
-                <th>Name/LeadsTo</th>
-                <th>Actions</th>
-              </tr>
-              </thead>
-              <tbody>
-              {this.state.systemAnomalies.map((anomaly, index) => (<tr key={index}>
-                <td><input type="checkbox"
-                           checked={anomaly.selected}
-                           onChange={(e) => this.setState({
-                             systemAnomalies: this.state.systemAnomalies.map(a => a.id === anomaly.id ? {
-                               ...a,
-                               selected: e.target.checked
-                             } : a)
-                           })}/></td>
-                <td>{anomaly.id}</td>
-                <td>{anomaly.type}</td>
-                <td>{this.ageInMinutes(anomaly.expiration)}</td>
-                {anomaly.type === ANOMALY_TYPE_WORMHOLE ? (<td>{anomaly['system_name'] && <div
-                  onClick={() => this.changeSelectedSystem(anomaly['system_destination'])}>{anomaly['system_name']}</div>}</td>) : (
-                  <td>{anomaly.link ? (
-                    <a href={anomaly.link} target="_blank" rel="noreferrer">{anomaly.name}</a>) : anomaly.name}</td>)}
-                <td>
-                  {anomaly.type === 'Wormhole' && <button
-                    onClick={() => this.openEditAnomalyModal(anomaly.id, anomaly['system_name'], getParentName(this.state.system.id))}>Edit
-                  </button>}
-                </td>
-              </tr>))}
-              </tbody>
-            </table>
+            <div className="table-container scrollbar">
+              <table className="table-anomalies">
+                <thead>
+                <tr>
+                  <th><input type="checkbox"
+                             onChange={() => this.allChecker()}
+                             checked={this.state.systemAnomalies.reduce((p, a) => p && a.selected, true)}/></th>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Age</th>
+                  <th>Name/LeadsTo</th>
+                  <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {this.state.systemAnomalies.map((anomaly, index) => (
+                  <tr key={index} className={anomaly.selected ? "row-selected" : ""}>
+                    <td><input type="checkbox"
+                               checked={anomaly.selected}
+                               onChange={(e) => this.setState({
+                                 systemAnomalies: this.state.systemAnomalies.map(a => a.id === anomaly.id ? {
+                                   ...a,
+                                   selected: e.target.checked
+                                 } : a)
+                               })}/></td>
+                    <td style={{whiteSpace: "nowrap"}}>{anomaly.id}</td>
+                    <td>{this.shortName(anomaly.type)}</td>
+                    <td>{this.ageInMinutes(anomaly.expiration)}</td>
+                    {anomaly.type === ANOMALY_TYPE_WORMHOLE ? (
+                      <td style={{width: "100%"}}>{anomaly['system_name'] && <div
+                        onClick={() => this.changeSelectedSystem(anomaly['system_destination'])}>{anomaly['system_name']}</div>}</td>) : (
+                      <td>{anomaly.link ? (
+                        <a href={anomaly.link} target="_blank"
+                           rel="noreferrer">{anomaly.name}</a>) : anomaly.name}</td>)}
+                    <td>
+                      {anomaly.type === 'Wormhole' && <button className="Button"
+                        onClick={() => this.openEditAnomalyModal(anomaly.id, anomaly['system_name'], getParentName(this.state.system.id))}>Edit
+                      </button>}
+                    </td>
+                  </tr>))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
       <div className="Body">
-        <div className="graph-actions">
-          <div
-            className={"graph-actions-tab " + (this.state.treeRootId === this.state.currentSystem.id && this.state.syncTreeSystem ? 'active' : '')}
-            onClick={() => this.setSyncTreeSystem()}>Follow
+        <div className="graph-container">
+          <div className="graph-actions">
+            <div
+              className={"graph-actions-tab " + (this.state.treeRootId === this.state.currentSystem.id && this.state.syncTreeSystem ? 'active' : '')}
+              onClick={() => this.setSyncTreeSystem()}>Follow
+            </div>
+            {(this.state.treeRoots || []).map((t, index) => (
+              <div key={index}
+                   className={"graph-actions-tab " + (this.state.treeRootId === t.id && !this.state.syncTreeSystem ? 'active' : '')}
+                   onClick={() => this.setSyncTreeSystem(t)}>{t.name}
+                <div style={{width: "100%"}}/>
+                <div className="remove" onClick={(e) => this.removeTab(e, t.id)}>×</div>
+              </div>))}
           </div>
-          {(this.state.treeRoots || []).map((t, index) => (
-            <div key={index}
-                 className={"graph-actions-tab " + (this.state.treeRootId === t.id && !this.state.syncTreeSystem ? 'active' : '')}
-                 onClick={() => this.setSyncTreeSystem(t)}>{t.name}
-              <div style={{width: "100%"}}/>
-              <div className="remove" onClick={(e) => this.removeTab(e, t.id)}>×</div></div>))}
+          <Graph openEditAnomalyModal={this.openEditAnomalyModal.bind(this)}/>
         </div>
-        <Graph openEditAnomalyModal={this.openEditAnomalyModal.bind(this)}/>
       </div>
 
       <Modal isOpen={this.state.editAnomaly}

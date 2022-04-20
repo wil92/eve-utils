@@ -40,7 +40,7 @@ class Loading extends Component {
         <div className="IconContainer">
           <img src={loading} className="LoadingIcon" alt="loading"/>
         </div>
-        <div className="Logs">
+        <div className="Logs scrollbar">
           {this.state.logs.map((log, i) => (
             <span className="Log" key={i} id={i}>{log.time} / {log.message}</span>
           ))}
