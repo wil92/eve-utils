@@ -232,7 +232,6 @@ module.exports = {
   /**
    * @param anomaly {{id: string, expiration: number, name: string, category: number, type: number, life: string, mass: string}}
    * @param systemId {number}
-   * @param destinationSystem {number|null}
    * @return {Promise<unknown>}
    */
   async saveAnomaly(anomaly, systemId) {

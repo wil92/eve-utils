@@ -5,8 +5,8 @@ export const DISTANCE_TOKEN = 3;
 export const ENDL_TOKEN = 4;
 
 const isIdTokenRegex = /^[A-Z]{3}-[0-9]{3}$/;
-const isPercentTokenRegex = /^([1-9][0-9]*|0)(\.[0-9]+)%$/;
-const isDistanceTokenRegex = /^([1-9][0-9]*|0)(\.[0-9]+) (AU)|(km)$/;
+const isPercentTokenRegex = /^([1-9][0-9]*|0)([\.\,][0-9]+)%$/;
+const isDistanceTokenRegex = /^([1-9][0-9]*|0)([\.\,][0-9]+) (AU)|(km)$/;
 
 export function isIdToken(str) {
   return str.match(isIdTokenRegex);

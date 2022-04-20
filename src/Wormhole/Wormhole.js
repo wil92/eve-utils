@@ -42,10 +42,11 @@ class Wormhole extends Component {
         class: '',
         id: 0
       },
+      syncUserSystem: true,
       // navigation tree
       treeRootId: 0,
       treeRoots: [],
-      syncUserSystem: true,
+      syncTreeSystem: true,
       // attributes
       editAnomaly: false,
       anomalyId: '',
@@ -73,15 +74,17 @@ class Wormhole extends Component {
       this.setState({currentSystem: message.location.system});
       this.props.updateCurrentSystem(message.location.system);
       if (this.state.syncUserSystem) {
-        sendMessage({type: 'load-anomalies', systemId: message.location.system.id});
         this.setState({
           system: {
             name: message.location.system.name,
             class: message.location.system['system_class'],
             id: message.location.system.id
-          },
-          treeRootId: message.location.system.id,
+          }
         });
+        sendMessage({type: 'load-anomalies', systemId: message.location.system.id});
+      }
+      if (this.state.syncTreeSystem) {
+        this.setState({treeRootId: message.location.system.id,});
         sendMessage({type: 'load-tree', systemId: message.location.system.id});
       }
     });
@@ -97,8 +100,11 @@ class Wormhole extends Component {
     this.subscription = observable.pipe(filter(m => m.type === 'load-system-response'), takeUntil(this.unsubscribe)).subscribe(message => {
       this.setState({
         system: {
-          name: message.system.name, class: message.system['system_class'], id: message.system.id
-        }
+          name: message.system.name,
+          class: message.system['system_class'],
+          id: message.system.id
+        },
+        syncUserSystem: message.system.id === this.state.currentSystem.id
       });
       sendMessage({type: 'load-anomalies', systemId: message.system.id});
     });
@@ -139,12 +145,12 @@ class Wormhole extends Component {
     }
   }
 
-  setSyncUserSystem(rootSystem) {
+  setSyncTreeSystem(rootSystem) {
     if (rootSystem) {
-      this.setState({treeRootId: rootSystem.id, syncUserSystem: false});
+      this.setState({treeRootId: rootSystem.id, syncTreeSystem: false});
       sendMessage({type: 'load-tree', systemId: rootSystem.id});
     } else {
-      this.setState({treeRootId: this.state.currentSystem.id, syncUserSystem: true});
+      this.setState({treeRootId: this.state.currentSystem.id, syncTreeSystem: true});
       sendMessage({type: 'load-tree', systemId: this.state.currentSystem.id});
     }
   }
@@ -200,7 +206,7 @@ class Wormhole extends Component {
           <div className="current-anomaly-status">
             <div style={{fontSize: "14px", display: "flex", flexDirection: "row", justifyContent: "center"}}>
               Current system: {this.state.currentSystem.name}&#160;&#160;
-              <div className="add-button">&#187;</div>
+              <div className="add-button" onClick={() => this.changeSelectedSystem(this.state.currentSystem.id)}>&#187;</div>
             </div>
             <hr style={{width: "100%"}}/>
             <div style={{fontSize: "20px", display: "flex", flexDirection: "row", justifyContent: "center"}}>
@@ -260,13 +266,13 @@ class Wormhole extends Component {
       <div className="Body">
         <div className="graph-actions">
           <div
-            className={"graph-actions-tab " + (this.state.treeRootId === this.state.currentSystem.id && this.state.syncUserSystem ? 'active' : '')}
-            onClick={() => this.setSyncUserSystem()}>Follow
+            className={"graph-actions-tab " + (this.state.treeRootId === this.state.currentSystem.id && this.state.syncTreeSystem ? 'active' : '')}
+            onClick={() => this.setSyncTreeSystem()}>Follow
           </div>
           {(this.state.treeRoots || []).map((t, index) => (
             <div key={index}
-                 className={"graph-actions-tab " + (this.state.treeRootId === t.id && !this.state.syncUserSystem ? 'active' : '')}
-                 onClick={() => this.setSyncUserSystem(t)}>{t.name}
+                 className={"graph-actions-tab " + (this.state.treeRootId === t.id && !this.state.syncTreeSystem ? 'active' : '')}
+                 onClick={() => this.setSyncTreeSystem(t)}>{t.name}
               <div style={{width: "100%"}}/>
               <a className="remove" onClick={(e) => this.removeTab(e, t.id)}>×</a></div>))}
         </div>

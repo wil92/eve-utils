@@ -41,6 +41,7 @@ class System extends Component {
   render() {
     return (
       <div className="SolarSystem"
+           title={this.state.system?.wormholeParent?.anomaly?.id || ''}
            onMouseDown={this.handleTransform}
            style={{
              left: `${this.state.system.position.x}px`,
