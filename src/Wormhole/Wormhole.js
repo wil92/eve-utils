@@ -248,10 +248,10 @@ class Wormhole extends Component {
                 <td>{anomaly.id}</td>
                 <td>{anomaly.type}</td>
                 <td>{this.ageInMinutes(anomaly.expiration)}</td>
-                {anomaly.type === ANOMALY_TYPE_WORMHOLE ? (<td>{anomaly['system_name'] && <a
-                  onClick={() => this.changeSelectedSystem(anomaly['system_destination'])}>{anomaly['system_name']}</a>}</td>) : (
+                {anomaly.type === ANOMALY_TYPE_WORMHOLE ? (<td>{anomaly['system_name'] && <div
+                  onClick={() => this.changeSelectedSystem(anomaly['system_destination'])}>{anomaly['system_name']}</div>}</td>) : (
                   <td>{anomaly.link ? (
-                    <a href={anomaly.link} target="_blank">{anomaly.name}</a>) : anomaly.name}</td>)}
+                    <a href={anomaly.link} target="_blank" rel="noreferrer">{anomaly.name}</a>) : anomaly.name}</td>)}
                 <td>
                   {anomaly.type === 'Wormhole' && <button
                     onClick={() => this.openEditAnomalyModal(anomaly.id, anomaly['system_name'], getParentName(this.state.system.id))}>Edit
@@ -274,7 +274,7 @@ class Wormhole extends Component {
                  className={"graph-actions-tab " + (this.state.treeRootId === t.id && !this.state.syncTreeSystem ? 'active' : '')}
                  onClick={() => this.setSyncTreeSystem(t)}>{t.name}
               <div style={{width: "100%"}}/>
-              <a className="remove" onClick={(e) => this.removeTab(e, t.id)}>×</a></div>))}
+              <div className="remove" onClick={(e) => this.removeTab(e, t.id)}>×</div></div>))}
         </div>
         <Graph openEditAnomalyModal={this.openEditAnomalyModal.bind(this)}/>
       </div>
