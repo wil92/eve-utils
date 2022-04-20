@@ -97,8 +97,6 @@ class Graph extends Component {
 
   handleTransform(event) {
     if (event.type === 'mousedown') {
-      this.state.startPosition.x = event.clientX;
-      this.state.startPosition.y = event.clientY;
       this.setState({
         startPosition: {
           x: event.clientX,
