@@ -29,6 +29,12 @@ module.exports = (window) => {
         this.refreshToken().then(() => this.getCurrentLocation());
       });
 
+      periodService.getObservable().pipe(
+        filter(val => val % 10 === 0)
+      ).subscribe(() => {
+        dataService.removeExpiredAnomalies().then();
+      });
+
       ipcMain.on('refresh-token', async (evt, data) => {
         await this.refreshToken(data.id);
       });

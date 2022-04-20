@@ -249,6 +249,12 @@ module.exports = {
     });
   },
 
+  async removeExpiredAnomalies() {
+    return new Promise((resolve, reject) => {
+      database.run('DELETE FROM anomaly WHERE expiration<?;', [new Date().getTime()], err => err ? reject(err) : resolve());
+    });
+  },
+
   /**
    * @param systemId {number}
    * @return {Promise<{id: string, expiration: number, name: string, category: number, type: number, life: string, mass: string}[]>}
