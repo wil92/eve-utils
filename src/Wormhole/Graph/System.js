@@ -2,8 +2,8 @@ import {Component} from "react";
 
 import './System.css';
 import {sendMessage} from "../../services/MessageHandler";
-import {updateCurrentSystem} from "../../redux/store";
 import {connect} from "react-redux";
+import {getClassColor} from "../../services/SystemClassColor";
 
 
 class System extends Component {
@@ -50,7 +50,7 @@ class System extends Component {
            }}>
         <div className="Planets">
           <div className="Planet P1"/>
-          <div className="Planet P2">
+          <div className="Planet P2" style={{backgroundColor: getClassColor(this.state.system.info.category)}}>
             {this.state.system.info.category}
           </div>
         </div>

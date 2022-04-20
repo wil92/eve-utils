@@ -2,14 +2,15 @@ import {Component} from "react";
 import {filter, Subject, takeUntil} from "rxjs";
 import axios from "axios";
 import Modal from "react-modal";
+import {connect} from "react-redux";
 
 import './Wormhole.css';
 import {observable, sendMessage, sendMessageAndWaitResponse} from "../services/MessageHandler";
 import {ANOMALY_TYPE_WORMHOLE, LexicoAnalyser} from "../services/AnomalyInterpreter";
 import Graph from "./Graph/Graph";
 import {getParentName} from "../services/TreeService";
-import {connect} from "react-redux";
 import {updateCurrentSystem} from "../redux/store";
+import {getClassColor} from "../services/SystemClassColor";
 
 const linksMap = new Map();
 
@@ -192,18 +193,6 @@ class Wormhole extends Component {
     sendMessage({type: 'load-tree', systemId: this.state.treeRootId});
   }
 
-  getClassColor(c) {
-    switch (c) {
-      case 'HS':
-        return '#90be6d';
-      case 'LS':
-        return '#f8961e';
-      case 'NS':
-      default:
-        return '#f94144';
-    }
-  }
-
   render() {
     return (<div className="Wormhole">
       <div className="Head">
@@ -216,7 +205,7 @@ class Wormhole extends Component {
             <hr style={{width: "100%"}}/>
             <div style={{fontSize: "20px", display: "flex", flexDirection: "row", justifyContent: "center"}}>
               {this.state.system.name} (<span
-              style={{color: this.getClassColor(this.state.system.class)}}>{this.state.system.class}</span>)&#160;&#160;
+              style={{color: getClassColor(this.state.system.class)}}>{this.state.system.class}</span>)&#160;&#160;
               <div className="add-button"
                    onClick={() => this.saveTabs(this.state.system.id, this.state.system.name)}>+
               </div>
