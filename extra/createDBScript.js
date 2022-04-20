@@ -6,11 +6,20 @@ module.exports = [
        data TEXT
    );`,
 
-  `CREATE TABLE region
+  `CREATE TABLE eve_type
    (
        id          INTEGER PRIMARY KEY,
        name        TEXT,
-       description TEXT
+       description TEXT,
+       capacity    REAL,
+       mass        REAL,
+       volume      REAL
+   );`,
+
+  `CREATE TABLE region
+   (
+       id   INTEGER PRIMARY KEY,
+       name TEXT
    );`,
 
   `CREATE TABLE constellation
@@ -27,8 +36,11 @@ module.exports = [
        name             TEXT,
        security_status  REAL,
        security_class   TEXT,
+       system_class     TEXT,
        constellation_id INTEGER,
-       FOREIGN KEY (constellation_id) REFERENCES constellation (id)
+       region_id        INTEGER,
+       FOREIGN KEY (constellation_id) REFERENCES constellation (id),
+       FOREIGN KEY (region_id) REFERENCES region (id)
    );`,
 
   `CREATE TABLE station
@@ -80,6 +92,7 @@ module.exports = [
        type_id       INTEGER,
        system_id     INTEGER,
        location_id   INTEGER,
+       FOREIGN KEY (type_id) REFERENCES eve_type (id),
        FOREIGN KEY (system_id) REFERENCES system (id),
        FOREIGN KEY (location_id) REFERENCES station (id)
    );`,
@@ -95,7 +108,24 @@ module.exports = [
        type_id   INTEGER,
        buyer_id  INTEGER,
        seller_id INTEGER,
+       FOREIGN KEY (type_id) REFERENCES eve_type (id),
        FOREIGN KEY (buyer_id) REFERENCES market_order (id),
        FOREIGN KEY (seller_id) REFERENCES market_order (id)
+   );`,
+
+  `CREATE TABLE anomaly
+   (
+       id                 TEXT    NOT NULL,
+       name               TEXT,
+       type               TEXT,
+       expiration         INTEGER,
+       life               TEXT,
+       mass               TEXT,
+       system_id          INTEGER NOT NULL,
+       system_destination INTEGER,
+       PRIMARY KEY (id, system_id),
+       FOREIGN KEY (system_id) REFERENCES system (id),
+       FOREIGN KEY (system_destination) REFERENCES system (id)
    );`
+
 ];

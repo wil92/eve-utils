@@ -10,8 +10,69 @@
     overflow: hidden;
 }
 
+.data-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.table-anomalies-container {
+    width: 50%;
+}
+
 .table-anomalies {
     width: 100%;
     max-width: calc(100% - 10px);
     min-width: auto;
+}
+
+.current-anomaly-status {
+    width: 50% !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.table-actions {
+    display: flex;
+    flex-direction: row;
+}
+
+.graph-actions {
+    display: flex;
+    flex-direction: row;
+    background-color: #23262e;
+}
+
+.graph-actions-tab {
+    padding: 5px 10px;
+    width: 80px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    white-space: nowrap;
+}
+
+.active {
+    cursor: initial;
+    background-color: #5a5b5e !important;
+}
+
+.remove {
+    font-weight: lighter;
+}
+
+.remove:hover {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.add-button {
+    font-weight: lighter;
+    color: #ccff33;
+}
+
+.add-button:hover {
+    cursor: pointer;
+    font-weight: bold;
 }

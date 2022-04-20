@@ -3,12 +3,15 @@ const path = require("path");
 
 const {ipcMain, app} = require("electron");
 const moment = require("moment");
+const {filter} = require("rxjs");
 
 const dataService = require("./DataService");
 const logsService = require("./LogsService");
 const ordersService = require("./AnalyseOrdersService");
+const locationService = require('./LocationService');
 const AuthService = require("./AuthService");
 const SyncDataService = require('./SyncDataService');
+const periodService = require("./PeriodicTasksService");
 const config = require("./config");
 
 const authService = AuthService(config);
@@ -20,6 +23,18 @@ module.exports = (window) => {
     window,
 
     registerMessages() {
+      periodService.getObservable().pipe(
+        filter(val => val % 2 === 0)
+      ).subscribe(() => {
+        this.refreshToken().then(() => this.getCurrentLocation());
+      });
+
+      periodService.getObservable().pipe(
+        filter(val => val % 10 === 0)
+      ).subscribe(() => {
+        dataService.removeExpiredAnomalies().then();
+      });
+
       ipcMain.on('refresh-token', async (evt, data) => {
         await this.refreshToken(data.id);
       });
@@ -36,15 +51,6 @@ module.exports = (window) => {
       ipcMain.on('load-value', async (event, data) => {
         const value = await dataService.loadValue(data.key);
         window.webContents.send('in-message', {type: 'load-value-response', value, key: data.key, id: data.id});
-      });
-
-      ipcMain.on('sync-all-data', async () => {
-        await this.refreshToken();
-        await syncDataService.syncAllData();
-        await this.sendTableResult({page: 1});
-        logsService.unblock();
-        await dataService.saveValue('firstLaunch', false);
-        window.webContents.send('in-message', {type: 'load-value-response', value: false, key: 'firstLaunch'});
       });
 
       ipcMain.on('remove-opportunity', async (event, data) => {
@@ -68,7 +74,6 @@ module.exports = (window) => {
       ipcMain.on('calculate-market', async (event, data) => {
         logsService.log('Start market calculation');
         let fixedStationOrigin;
-        // fixedStationOrigin, fixedStationDestination
         if (data.fixedStationOrigin) {
           fixedStationOrigin = +data.fixedStationOrigin;
         }
@@ -86,6 +91,46 @@ module.exports = (window) => {
         window.webContents.send('in-message', {type: 'get-regions-response', regions, id: data.id});
       });
 
+      ipcMain.on('get-current-location', async (event, data) => {
+        await this.getCurrentLocation(data.id);
+      });
+
+      ipcMain.on('save-anomalies', async (event, data) => {
+        await dataService.saveAnomaliesAndRemoveMissing(data.anomalies, data.systemId);
+        await this.sendSystemAnomalies(data.systemId, data.id);
+      });
+
+      ipcMain.on('remove-anomalies', async (event, data) => {
+        for (let i = 0; i < data.anomalies.length; i++) {
+          await dataService.removeAnomalyById(data.anomalies[i], data.systemId);
+        }
+        await this.sendSystemAnomalies(data.systemId, data.id);
+      });
+
+      ipcMain.on('update-anomaly-destination', async (event, data) => {
+        const destinationSys = await dataService.getSystemByName(data.destinationName);
+        const anomaly = await dataService.loadAnomalyById(data.anomalyId);
+        if (anomaly) {
+          anomaly['system_destination'] = destinationSys && destinationSys.id;
+          await dataService.saveAnomaly(anomaly, anomaly['system_id']);
+
+          window.webContents.send('in-message', {type: 'update-anomaly-destination-response', id: data.id});
+        }
+      });
+
+      ipcMain.on('load-anomalies', async (event, data) => {
+        await this.sendSystemAnomalies(data.systemId);
+      });
+
+      ipcMain.on('load-system', async (event, data) => {
+        const system = await dataService.loadSystem(data.systemId);
+        window.webContents.send('in-message', {type: 'load-system-response', system, id: data.id});
+      });
+
+      ipcMain.on('load-tree', async (event, data) => {
+        await this.sendAnomaliesTree(data.systemId);
+      });
+
       ipcMain.on('get-security-status', async (event, data) => {
         const securityStatus = await dataService.getSecurityStatus(data.route);
         window.webContents.send('in-message', {type: 'get-security-status-response', securityStatus, id: data.id});
@@ -101,6 +146,57 @@ module.exports = (window) => {
         await this.refreshToken();
         const userInfo = await authService.getUserInfo(authData['access_token']);
         window.webContents.send('in-message', {type: 'user-info-response', userInfo, id: data.id});
+      });
+    },
+
+    /**
+     * @param systemId {number}
+     * @param responseId
+     * @return {Promise<void>}
+     */
+    async sendSystemAnomalies(systemId, responseId = null) {
+      const anomalies = await dataService.loadAnomaliesBySystemId(systemId);
+      window.webContents.send('in-message', {type: 'load-anomalies-response', anomalies, id: responseId});
+    },
+
+    /**
+     * @param systemId {number}
+     * @param responseId {number|null}
+     * @return {Promise<void>}
+     */
+    async sendAnomaliesTree(systemId, responseId= null) {
+      const anomalies = await dataService.loadAnomalies();
+      const queue = [systemId];
+      const flags = new Set();
+      flags.add(systemId);
+      const tree = [];
+
+      while (queue.length > 0) {
+        const sid = queue.shift();
+        const node = {wormholes: [], system: await dataService.getSystemById(sid)};
+
+        anomalies
+          .filter(a => a['system_id'] === sid && a['type'] === 'Wormhole')
+          .forEach(a => {
+            if (a['system_destination'] && !flags.has(a['system_destination'])) {
+              flags.add(a['system_destination']);
+              queue.push(a['system_destination']);
+            }
+            node.wormholes.push(a);
+          });
+
+        tree.push(node);
+      }
+
+      window.webContents.send('in-message', {
+        type: 'load-tree-response', tree, id: responseId
+      });
+    },
+
+    async getCurrentLocation(responseId) {
+      const currentSystem = await locationService.getCurrentLocation();
+      window.webContents.send('in-message', {
+        type: 'get-current-location-response', location: {system: currentSystem}, id: responseId
       });
     },
 
@@ -128,8 +224,10 @@ module.exports = (window) => {
     },
 
     async logout() {
+      periodService.stopTimer();
       await dataService.saveValue('auth', null);
       await dataService.saveValue('expire', null);
+      await dataService.saveValue('user_info', null);
       await this.openLoginPage();
     },
 
@@ -138,15 +236,23 @@ module.exports = (window) => {
 
       window.webContents.on('did-redirect-navigation', async (event, newUrl) => {
         await authService.requestAccessCode(newUrl);
+        await this.getUserInfo();
         await this.openApp();
         await this.updateTokenInUI();
       });
     },
 
+    async getUserInfo() {
+      const authData = await dataService.loadObjValue('auth');
+      const userInfo = await authService.getUserInfo(authData['access_token']);
+      await dataService.saveValue('user_info', userInfo);
+    },
+
     async openApp() {
+      periodService.startTimer();
       return window.loadURL(
         isDev
-          ? 'http://localhost:3000'
+          ? `http://localhost:${process.env.PORT || 3000}`
           : url.format({
             pathname: path.join(__dirname, '../index.html'),
             protocol: 'file',

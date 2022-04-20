@@ -108,7 +108,7 @@ module.exports = (config) => {
 
     getAuthoriseUrl(challengePair) {
       const redirectUri = encodeURIComponent(this.config.redirectUri);
-      return `${this.config.authorizeEndpoint}?response_type=code&redirect_uri=${redirectUri}&client_id=${this.config.clientId}&scope=${this.config.scope}&code_challenge=${challengePair.challenge}&code_challenge_method=S256&state=${this.state}`;
+      return `${this.config.authorizeEndpoint}?response_type=code&redirect_uri=${redirectUri}&client_id=${this.config.clientId}&scope=${encodeURIComponent(this.config.scope)}&code_challenge=${challengePair.challenge}&code_challenge_method=S256&state=${this.state}`;
     },
 
     getTokenPostRequest(authCode, verifier) {

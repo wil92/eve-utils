@@ -7,6 +7,7 @@
   "author": "Guillermo <ggjnez92@gmail.com>",
   "description": "EVE online utils",
   "dependencies": {
+    "@reduxjs/toolkit": "^1.8.1",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
@@ -18,11 +19,13 @@
     "react-image": "^4.0.3",
     "react-modal": "^3.14.4",
     "react-notifications": "^1.7.3",
+    "react-redux": "^8.0.0",
     "react-scripts": "5.0.0",
     "react-select": "^5.2.2",
     "react-tabs": "^4.2.0",
     "request-promise": "^4.2.6",
     "rxjs": "^7.5.1",
+    "semver": "^7.3.7",
     "sqlite3": "^5.0.2",
     "web-vitals": "^2.1.3"
   },
@@ -32,6 +35,7 @@
     "electron": "^16.0.6",
     "electron-builder": "^22.14.5",
     "electron-rebuild": "^3.2.5",
+    "vorpal": "^1.12.0",
     "wait-on": "^6.0.0"
   },
   "scripts": {
@@ -40,7 +44,7 @@
     "test": "node_modules/.bin/react-scripts test",
     "eject": "node_modules/.bin/react-scripts eject",
     "dev": "concurrently -k \"BROWSER=none npm start\" \"npm:electron\"",
-    "electron": "wait-on tcp:3000 && electron .",
+    "electron": "wait-on tcp:${PORT:=3000} && electron .",
     "server": "node server.js",
     "dist": "npm run build && electron-builder --linux --win",
     "dist:linux": "npm run build && electron-builder --linux",

@@ -36,24 +36,10 @@ class App extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      firstLaunch: false,
-      showSyncDataModal: false
-    };
+    this.state = {};
   }
 
   componentDidMount() {
-    observable.pipe(filter(m => m.type === 'load-value-response')).subscribe((data) => {
-      if (data.key === 'firstLaunch') {
-        this.setState({firstLaunch: !!JSON.parse(data.value)});
-      }
-    });
-    observable.pipe(filter(m => m.type === 'show-sync-data-dialog')).subscribe((data) => {
-      if (!this.state.showSyncDataModal && !this.state.block) {
-        this.setState({showSyncDataModal: true});
-      }
-    });
-
     sendMessage({type: 'load-value', key: 'firstLaunch'});
   }
 
@@ -62,25 +48,6 @@ class App extends Component {
       <div className="App">
         {this.state.block && <Loading/>}
         <header className="App-header" dir="ltr">
-
-          <Modal
-            isOpen={this.state.showSyncDataModal || this.state.firstLaunch}
-            onRequestClose={() => this.setState({showSyncDataModal: false})}
-            style={{content: {...customStyles.content, width: '300px', height: 'auto', overflow: 'hidden'}}}>
-            <button className="CloseButton"
-                    onClick={() => this.setState({showSyncDataModal: false})}>x
-            </button>
-            <h3>Sync app with EVE server</h3>
-            <p>You need to get the EVE online initial data to be able to use the current application.
-              This button allow the application to get from EVE the 'regions', 'systems' and 'constellations'.
-              This can take about 15min, be patient !!!
-            </p>
-            <div>
-              <button className="Button" style={{margin: '10px 0', width: '100%'}}
-                      onClick={() => this.syncAllData()}>sync all data
-              </button>
-            </div>
-          </Modal>
 
           <Tabs forceRenderTabPanel direction={'ltr'}>
             <TabList>

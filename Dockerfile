@@ -4,5 +4,6 @@ WORKDIR /app
 
 COPY server.js ./server.js
 COPY start.sh ./start.sh
+COPY links.json ./links.json
 
 CMD ["/bin/sh", "start.sh"]

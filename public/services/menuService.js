@@ -1,6 +1,6 @@
 const {Menu: MenuService} = require("electron");
 
-module.exports = (window) => ({
+module.exports = (window, communicationService) => ({
   window,
 
   createMenu() {
@@ -15,9 +15,16 @@ module.exports = (window) => ({
       {
         label: 'App',
         submenu: [
+          // {
+          //   role: 'syncData', label: 'Sync data', click: async () => {
+          //     window.webContents.send('in-message', {type: 'show-sync-data-dialog'});
+          //   }
+          // },
           {
-            role: 'syncData', label: 'Sync data', click: async () => {
-              window.webContents.send('in-message', {type: 'show-sync-data-dialog'});
+            role: 'logout',
+            label: 'Logout',
+            click: async () => {
+              await communicationService.logout();
             }
           },
           {type: 'separator'},

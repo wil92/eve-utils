@@ -52,6 +52,16 @@ endl-token
 
 This is a script that take the information out of the latest version of EVE online databases and update the database use in the application.
 
-### Steps to update the database
+### Steps to update the database (dev perspective)
 
-tbd
+The developer needs to start the *setup.js* script. This script generate automatically the new DB version, base on the latest CCP DB provided.
+
+### Application automatic DB update (behavior)
+
+When the application found a new db version available, it should notify the user about it.
+How the version change:
+
+- If the version change the minor number, it means that you can get this new db without braking changes.
+- If the version change a major number, it means that you need the new application version.
+
+The application always ask the user if he/her want to update the DB.

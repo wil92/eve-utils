@@ -16,6 +16,8 @@
 .react-tabs {
     width: 100%;
     min-height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
 }
 
 .react-tabs__tab-list {
@@ -81,6 +83,16 @@ th, td {
     padding: 0 4px;
     font-weight: 300;
     color: white;
+}
+
+td > a {
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+}
+
+td > a:hover {
+    cursor: pointer;
 }
 
 .thinline, button {

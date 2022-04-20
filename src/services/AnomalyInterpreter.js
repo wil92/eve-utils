@@ -5,8 +5,8 @@ export const DISTANCE_TOKEN = 3;
 export const ENDL_TOKEN = 4;
 
 const isIdTokenRegex = /^[A-Z]{3}-[0-9]{3}$/;
-const isPercentTokenRegex = /^([1-9][0-9]*|0)(\.[0-9]+)%$/;
-const isDistanceTokenRegex = /^([1-9][0-9]*|0)(\.[0-9]+) (AU)|(km)$/;
+const isPercentTokenRegex = /^([1-9][0-9]*|0)([\.\,][0-9]+)%$/;
+const isDistanceTokenRegex = /^([1-9][0-9]*|0)([\.\,][0-9]+) (AU)|(km)$/;
 
 export function isIdToken(str) {
   return str.match(isIdTokenRegex);
@@ -23,7 +23,7 @@ export function isDistanceToken(str) {
 export class SintacticAnalyser {
   constructor(text) {
     this.ptn = 0;
-    this.text = text;
+    this.text = text.replaceAll('  ', '\t');
     this.token = '';
     this.tokens = [];
   }
@@ -128,14 +128,18 @@ export class LexicoAnalyser {
   }
 
   resetCurrentAnomaly() {
+    const date = new Date();
+    date.setDate(date.getDate() + 3);
     this.anomaly = {
       id: '',
-      createdAt: new Date(),
+      expiration: date.getTime(),
       name: '',
       category: '',
       type: ANOMALY_TYPE_UNKNOWN,
       percent: '',
-      distance: ''
+      distance: '',
+      life: 'stable',
+      mass: 'stable'
     };
   }
 
@@ -173,6 +177,7 @@ export class LexicoAnalyser {
         this.anomaly.category = this.consumeToken(STRING_TOKEN).value;
         break
       default:
+        console.log(this.token().value)
         throw new Error('Error with read anomaly category');
     }
   }

@@ -1,8 +1,9 @@
 const fs = require('fs');
 const path = require("path");
-
+const semver = require('semver');
 const sqlite = require('sqlite3').verbose();
 
+const httpService = require('./HttpService');
 const databaseName = 'data.db';
 
 let database;
@@ -12,27 +13,42 @@ module.exports = {
   async initDatabase(savePath) {
     const dbPath = path.join(savePath, databaseName);
     console.log(dbPath);
+    const lastDBName = await this.getLastAvailableDBVersion();
 
-    const isNewDB = !fs.existsSync(dbPath);
+    if (!fs.existsSync(dbPath)) {
+      await this.downloadDB(lastDBName, dbPath);
+    }
     database = new sqlite.Database(dbPath);
 
-    if (isNewDB) {
-      const initialScriptArray = require('./createDB');
-
-      return initialScriptArray.reduce((p, sql) => {
-        console.log(sql);
-        return p.then(() => {
-          return new Promise((resolve, reject) => {
-            database.run(sql, (err) => {
-              if (err) {
-                return reject(err);
-              }
-              resolve();
-            });
-          });
-        })
-      }, Promise.resolve());
+    const currentDBVersion = await this.loadValue('version');
+    console.log(lastDBName);
+    if (lastDBName && currentDBVersion !== this.extractVersion(lastDBName)) {
+      // toDo guille 19.04.22: safe user data is missing
+      this.terminateDBConnection();
+      await this.downloadDB(lastDBName, dbPath);
+      database = new sqlite.Database(dbPath);
     }
+  },
+
+  async downloadDB(dbName, dbPath) {
+    const downloadUrl = `https://eveutils.guilledev.com/download/${dbName}`;
+    await httpService.utilsDownload(downloadUrl, dbPath);
+  },
+
+  async getLastAvailableDBVersion() {
+    const versionsUrl = `https://eveutils.guilledev.com/db-versions`;
+    const versions = await httpService.utilsGET(versionsUrl);
+    if (Array.isArray(versions)) {
+      return versions.sort((a, b) => semver.rcompare(this.extractVersion(a), this.extractVersion(b), null))[0];
+    }
+    return null;
+  },
+
+  /**
+   * @param name {string}
+   */
+  extractVersion(name) {
+    return /\d+.\d+(.\d+)*/.exec(name)[0];
   },
 
   async loadObjValue(key) {
@@ -51,7 +67,7 @@ module.exports = {
 
     let orderIdToUpdate = 0;
     let remain = 0;
-    if (opportunity.available - opportunity.requested  > 0) {
+    if (opportunity.available - opportunity.requested > 0) {
       orderIdToUpdate = opportunity['seller_id'];
       remain = opportunity.available - opportunity.requested;
     } else if (opportunity.available - opportunity.requested < 0) {
@@ -72,7 +88,9 @@ module.exports = {
     await new Promise((resolve, reject) => {
       database.serialize(() => {
         database.run('DELETE FROM market_opportunity WHERE id=?;', [opportunityId]);
-        database.run(`DELETE FROM market_order WHERE ${where};`, ordersIdsToRemove, (err) => {
+        database.run(`DELETE
+                      FROM market_order
+                      WHERE ${where};`, ordersIdsToRemove, (err) => {
           err ? reject(err) : resolve();
         });
       });
@@ -90,6 +108,26 @@ module.exports = {
   async getOpportunity(opportunityId) {
     return new Promise((resolve, reject) => {
       database.get('SELECT * FROM market_opportunity WHERE id=?', [opportunityId], (err, row) => {
+        err ? reject(err) : resolve(row);
+      });
+    });
+  },
+
+  async getSystemById(systemId) {
+    return new Promise((resolve, reject) => {
+      database.get('SELECT * FROM system WHERE id=?', [systemId], (err, row) => {
+        err ? reject(err) : resolve(row);
+      });
+    });
+  },
+
+  /**
+   * @param systemName {string}
+   * @return {Promise<unknown>}
+   */
+  async getSystemByName(systemName) {
+    return new Promise((resolve, reject) => {
+      database.get('SELECT * FROM system WHERE UPPER(name)=?', [systemName.toUpperCase()], (err, row) => {
         err ? reject(err) : resolve(row);
       });
     });
@@ -155,6 +193,118 @@ module.exports = {
     });
   },
 
+  /**
+   * @param anomalies {{id: string, expiration: number, name: string, category: number, type: number, life: string, mass: string}[]}
+   * @param systemId {number}
+   * @return {Promise<void>}
+   */
+  async saveAnomaliesAndRemoveMissing(anomalies, systemId) {
+    const oldAnomalies = await this.loadAnomaliesBySystemId(systemId);
+    const used = new Set();
+    anomalies.forEach(a => used.add(a.id));
+
+    await new Promise((resolve, reject) => {
+      database.serialize(() => {
+        database.run('BEGIN;');
+
+        for (let i = 0; i < oldAnomalies.length; i++) {
+          if (!used.has(oldAnomalies[i].id)) {
+            this.removeAnomalyById(oldAnomalies[i].id, systemId);
+          }
+        }
+
+        database.run('COMMIT;', err => err ? reject(err) : resolve());
+      });
+    });
+
+    const oldAnomaliesMap = new Map();
+    oldAnomalies.forEach(a => oldAnomaliesMap.set(a.id, a));
+    for (let i = 0; i < anomalies.length; i++) {
+      const oldValues = {};
+      if (oldAnomaliesMap.has(anomalies[i].id)) {
+        const v = oldAnomaliesMap.get(anomalies[i].id);
+        ['system_destination'].forEach(k => oldValues[k] = v[k]);
+      }
+      await this.saveAnomaly({...anomalies[i], ...oldValues}, systemId);
+    }
+  },
+
+  /**
+   * @param anomaly {{id: string, expiration: number, name: string, category: number, type: number, life: string, mass: string}}
+   * @param systemId {number}
+   * @return {Promise<unknown>}
+   */
+  async saveAnomaly(anomaly, systemId) {
+    return new Promise((resolve, reject) => {
+      database.run(`INSERT
+              OR REPLACE INTO anomaly (id, name, type, expiration, life, mass, system_id, system_destination) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
+        [anomaly.id, anomaly.name, anomaly.type, anomaly.expiration, anomaly.life, anomaly.mass, systemId, anomaly['system_destination']], function (err) {
+          err ? reject(err) : resolve();
+        });
+    });
+  },
+
+  /**
+   * @param anomalyId {string}
+   * @param systemId {number}
+   * @return {Promise<unknown>}
+   */
+  async removeAnomalyById(anomalyId, systemId) {
+    return new Promise((resolve, reject) => {
+      database.run('DELETE FROM anomaly WHERE id=? AND system_id=?;', [anomalyId, systemId], err => err ? reject(err) : resolve());
+    });
+  },
+
+  async removeExpiredAnomalies() {
+    return new Promise((resolve, reject) => {
+      database.run('DELETE FROM anomaly WHERE expiration<?;', [new Date().getTime()], err => err ? reject(err) : resolve());
+    });
+  },
+
+  /**
+   * @param systemId {number}
+   * @return {Promise<{id: string, expiration: number, name: string, category: number, type: number, life: string, mass: string}[]>}
+   */
+  async loadAnomaliesBySystemId(systemId) {
+    const sql = 'SELECT a.*, s.name as system_name FROM anomaly a LEFT JOIN system s ON a.system_destination = s.id  WHERE system_id=?;';
+    return new Promise((resolve, reject) => {
+      database.all(sql, [systemId], (err, rows) => err ? reject(err) : resolve(rows));
+    });
+  },
+
+  async loadAnomalyById(anomalyId) {
+    const sql = 'SELECT * FROM anomaly WHERE id=?;';
+    return new Promise((resolve, reject) => {
+      database.get(sql, [anomalyId], (err, row) => err ? reject(err) : resolve(row));
+    });
+  },
+
+  /**
+   *
+   * @return {Promise<unknown[]>}
+   */
+  async loadAnomalies() {
+    const sql = 'SELECT * FROM anomaly;';
+    return new Promise((resolve, reject) => {
+      database.all(sql, [], (err, rows) => err ? reject(err) : resolve(rows));
+    });
+  },
+
+  /**
+   * @param systemId {number}
+   * @return {Promise<unknown>}
+   */
+  async loadSystem(systemId) {
+    const sql = 'SELECT * FROM system WHERE id=?;';
+    return new Promise((resolve, reject) => {
+      database.get(sql, [systemId], (err, row) => err ? reject(err) : resolve(row));
+    });
+  },
+
+  async removeOutdatedAnomalies() {
+    // toDo 17.04.22, guille,
+  },
+
   async createFirstLaunch() {
     const result = await this.loadValue('firstLaunch');
     if (result === null) {
@@ -176,7 +326,6 @@ module.exports = {
                       INNER JOIN constellation AS c ON c.id = s.constellation_id
              WHERE ${where};`;
     }
-    console.log(sql);
     database.serialize(() => {
       database.each(sql, (err, result) => {
         callback(err, result);

@@ -1,6 +1,6 @@
 const path = require('path');
 
-const {app, BrowserWindow, Menu} = require('electron');
+const {app, BrowserWindow} = require('electron');
 
 const dataService = require('./services/DataService');
 const logsService = require("./services/LogsService");
@@ -44,7 +44,7 @@ async function createAuthWindow() {
     window.webContents.openDevTools({mode: 'right'});
   }
 
-  const menu = menuService(window);
+  const menu = menuService(window, communicationService);
   window.setMenu(menu.createMenu());
 
   const auth = await dataService.loadObjValue('auth');
