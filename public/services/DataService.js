@@ -217,8 +217,15 @@ module.exports = {
       });
     });
 
+    const oldAnomaliesMap = new Map();
+    oldAnomalies.forEach(a => oldAnomaliesMap.set(a.id, a));
     for (let i = 0; i < anomalies.length; i++) {
-      await this.saveAnomaly(anomalies[i], systemId);
+      const oldValues = {};
+      if (oldAnomaliesMap.has(anomalies[i].id)) {
+        const v = oldAnomaliesMap.get(anomalies[i].id);
+        ['system_destination'].forEach(k => oldValues[k] = v[k]);
+      }
+      await this.saveAnomaly({...anomalies[i], ...oldValues}, systemId);
     }
   },
 
@@ -228,11 +235,11 @@ module.exports = {
    * @param destinationSystem {number|null}
    * @return {Promise<unknown>}
    */
-  async saveAnomaly(anomaly, systemId, destinationSystem = null) {
+  async saveAnomaly(anomaly, systemId) {
     return new Promise((resolve, reject) => {
       database.run(`INSERT
               OR REPLACE INTO anomaly (id, name, type, expiration, life, mass, system_id, system_destination) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
-        [anomaly.id, anomaly.name, anomaly.type, anomaly.expiration, anomaly.life, anomaly.mass, systemId, destinationSystem], function (err) {
+        [anomaly.id, anomaly.name, anomaly.type, anomaly.expiration, anomaly.life, anomaly.mass, systemId, anomaly['system_destination']], function (err) {
           err ? reject(err) : resolve();
         });
     });

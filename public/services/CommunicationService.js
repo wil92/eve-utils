@@ -111,7 +111,8 @@ module.exports = (window) => {
         const destinationSys = await dataService.getSystemByName(data.destinationName);
         const anomaly = await dataService.loadAnomalyById(data.anomalyId);
         if (anomaly) {
-          await dataService.saveAnomaly(anomaly, anomaly['system_id'], destinationSys && destinationSys.id);
+          anomaly['system_destination'] = destinationSys && destinationSys.id;
+          await dataService.saveAnomaly(anomaly, anomaly['system_id']);
 
           window.webContents.send('in-message', {type: 'update-anomaly-destination-response', id: data.id});
         }
