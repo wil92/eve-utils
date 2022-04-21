@@ -334,10 +334,16 @@ class Wormhole extends Component {
                    style={{width: '100%'}}
                    value={this.state.leadsToName}
                    onChange={e => this.setState({leadsToName: e.target.value})}/>
-            {this.state.parentName && <button
-              onClick={() => this.setState({leadsToName: this.state.parentName})}>{this.state.parentName}</button>}
-            <button
-              onClick={() => this.setState({leadsToName: this.state.currentSystem.name})}>{this.state.currentSystem.name}</button>
+            {this.state.parentName && <button className="Button ButtonEmpty"
+                                              onClick={() => this.setState({leadsToName: this.state.parentName})}>
+              <span>parent</span><br/>
+              {this.state.parentName}
+            </button>}
+            <button className="Button ButtonEmpty"
+                    onClick={() => this.setState({leadsToName: this.state.currentSystem.name})}>
+              <span>current</span><br/>
+              {this.state.currentSystem.name}
+            </button>
           </div>
           <button className="Button"
                   style={{margin: '30px 0 10px 0', width: '100%'}}
