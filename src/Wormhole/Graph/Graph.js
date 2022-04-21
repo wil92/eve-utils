@@ -39,7 +39,8 @@ class Graph extends Component {
       filter(m => m.type === 'load-tree-response'),
       takeUntil(this.unsubscribe)
     ).subscribe(message => {
-      this.setState({position: {x: 0, y: 0, scale: 1},
+      this.setState({
+        position: {x: 0, y: 0, scale: 1},
         startPosition: {x: 0, y: 0},
         movement: {x: 0, y: 0},
         systemTree: {},
@@ -192,6 +193,8 @@ class Graph extends Component {
     let offsetToReturn = middleX;
 
     if (system.wormholes.length > 0) {
+      system.wormholes.sort((a, b) => a.anomaly.id.localeCompare(b.anomaly.id));
+
       middleX = 0;
       let offsetTmp = offsetX;
       for (let i = 0; i < system.wormholes.length; i++) {

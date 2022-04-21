@@ -95,9 +95,8 @@ class Wormhole extends Component {
           ...a,
           selected: false,
           link: linksMap.get(removeExtraSpaces(a.name.toUpperCase()))
-        })).sort((a,b) => a.id.localeCompare(b.id))
+        })).sort((a, b) => a.id.localeCompare(b.id))
       });
-      console.log(this.state.systemAnomalies)
     });
     this.subscription = observable.pipe(filter(m => m.type === 'load-system-response'), takeUntil(this.unsubscribe)).subscribe(message => {
       this.setState({
@@ -289,7 +288,7 @@ class Wormhole extends Component {
                            rel="noreferrer">{anomaly.name}</a>) : anomaly.name}</td>)}
                     <td>
                       {anomaly.type === 'Wormhole' && <button className="Button"
-                        onClick={() => this.openEditAnomalyModal(anomaly.id, anomaly['system_name'], getParentName(this.state.system.id))}>Edit
+                                                              onClick={() => this.openEditAnomalyModal(anomaly.id, anomaly['system_name'], getParentName(this.state.system.id))}>Edit
                       </button>}
                     </td>
                   </tr>))}
@@ -326,7 +325,7 @@ class Wormhole extends Component {
           x
         </button>
         <h3>{this.state.anomalyId}</h3>
-        <p></p>
+        {/*<p></p>*/}
         <div style={{display: 'flex', flexDirection: 'column'}}>
           <label htmlFor="selectRegionsToGetOrders">Leads to</label>
           <div style={{display: 'flex', flexDirection: 'row'}}>
@@ -336,10 +335,11 @@ class Wormhole extends Component {
                    onChange={e => this.setState({leadsToName: e.target.value})}/>
             {this.state.parentName && <button
               onClick={() => this.setState({leadsToName: this.state.parentName})}>{this.state.parentName}</button>}
+            <button
+              onClick={() => this.setState({leadsToName: this.state.currentSystem.name})}>{this.state.currentSystem.name}</button>
           </div>
-          ------------------------------------
           <button className="Button"
-                  style={{margin: '10px 0', width: '100%'}}
+                  style={{margin: '30px 0 10px 0', width: '100%'}}
                   onClick={() => this.editAnomaly()}>
             Update
           </button>
