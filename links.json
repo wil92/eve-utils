@@ -258,6 +258,14 @@
       "url": "https://eve-survival.org/wikka.php?wakka=UnexceptionalFrontierDeposit"
     },
     {
+      "name": "Unsecured Frontier Enclave Relay",
+      "url": "https://eve-survival.org/wikka.php?wakka=UnsecuredFrontierEnclaveRelay"
+    },
+    {
+      "name": "Unsecured Perimeter Comms Relay",
+      "url": "https://eve-survival.org/wikka.php?wakka=UnsecuredPerimeterCommsRelay"
+    },
+    {
       "name": "Unsecured Perimeter Transponder Farm",
       "url": "https://eve-survival.org/wikka.php?wakka=UnsecuredPerimeterTransponderFarm"
     }

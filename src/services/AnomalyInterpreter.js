@@ -1,3 +1,5 @@
+import {removeExtraSpaces} from "./Utils";
+
 export const ID_TOKEN = 0;
 export const STRING_TOKEN = 1;
 export const PERCENT_TOKEN = 2;
@@ -167,14 +169,14 @@ export class LexicoAnalyser {
   }
 
   readAnomalyId() {
-    this.anomaly.id = this.consumeToken(ID_TOKEN).value;
+    this.anomaly.id = removeExtraSpaces(this.consumeToken(ID_TOKEN).value);
   }
 
   readAnomalyCategory() {
     switch (this.token().value) {
       case ANOMALY_CATEGORY_ANOMALY:
       case ANOMALY_CATEGORY_SIGNATURE:
-        this.anomaly.category = this.consumeToken(STRING_TOKEN).value;
+        this.anomaly.category = removeExtraSpaces(this.consumeToken(STRING_TOKEN).value);
         break
       default:
         console.log(this.token().value)
@@ -191,7 +193,7 @@ export class LexicoAnalyser {
       case ANOMALY_TYPE_ORE:
       case ANOMALY_TYPE_UNKNOWN:
       case ANOMALY_TYPE_RELIC:
-        this.anomaly.type = this.consumeToken(STRING_TOKEN).value;
+        this.anomaly.type = removeExtraSpaces(this.consumeToken(STRING_TOKEN).value);
         break
       default:
         throw new Error('Error with read anomaly type');
@@ -199,12 +201,12 @@ export class LexicoAnalyser {
   }
 
   readAnomalyName() {
-    this.anomaly.name = this.consumeToken(STRING_TOKEN).value;
+    this.anomaly.name = removeExtraSpaces(this.consumeToken(STRING_TOKEN).value);
   }
 
   readPercentAndDistance() {
-    this.anomaly.percent = this.consumeToken(PERCENT_TOKEN).value;
-    this.anomaly.distance = this.consumeToken(DISTANCE_TOKEN).value;
+    this.anomaly.percent = removeExtraSpaces(this.consumeToken(PERCENT_TOKEN).value);
+    this.anomaly.distance = removeExtraSpaces(this.consumeToken(DISTANCE_TOKEN).value);
   }
 
   consumeToken(tokenType, matchStr = null) {

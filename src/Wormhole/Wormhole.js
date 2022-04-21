@@ -11,6 +11,7 @@ import Graph from "./Graph/Graph";
 import {getParentName} from "../services/TreeService";
 import {updateCurrentSystem} from "../redux/store";
 import {getClassColor} from "../services/SystemClassColor";
+import {removeExtraSpaces} from "../services/Utils";
 
 const linksMap = new Map();
 
@@ -59,7 +60,7 @@ class Wormhole extends Component {
 
   componentDidMount() {
     this.getLinks().then(data => {
-      (data.links || []).forEach(l => linksMap.set(l.name.toUpperCase(), l.url));
+      (data.links || []).forEach(l => linksMap.set(removeExtraSpaces(l.name.toUpperCase()), l.url));
       this.initialSetup();
     });
   }
@@ -93,9 +94,10 @@ class Wormhole extends Component {
         systemAnomalies: message.anomalies.map(a => ({
           ...a,
           selected: false,
-          link: linksMap.get(a.name.toUpperCase())
-        }))
+          link: linksMap.get(removeExtraSpaces(a.name.toUpperCase()))
+        })).sort((a,b) => a.id.localeCompare(b.id))
       });
+      console.log(this.state.systemAnomalies)
     });
     this.subscription = observable.pipe(filter(m => m.type === 'load-system-response'), takeUntil(this.unsubscribe)).subscribe(message => {
       this.setState({
