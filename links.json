@@ -126,6 +126,10 @@
       "url": "https://eve-survival.org/wikka.php?wakka=GuristasForsakenHideaway"
     },
     {
+      "name": "Guristas Haven",
+      "url": "https://wiki.eveuniversity.org/Guristas_Haven"
+    },
+    {
       "name": "Guristas Hidden Hideaway",
       "url": "https://eve-survival.org/wikka.php?wakka=GuristasHiddenHideaway"
     },
@@ -258,8 +262,16 @@
       "url": "https://eve-survival.org/wikka.php?wakka=UnexceptionalFrontierDeposit"
     },
     {
+      "name": "Unsecured Frontier Digital Nexus",
+      "url": "https://eve-survival.org/wikka.php?wakka=UnsecuredFrontierDigitalNexus"
+    },
+    {
       "name": "Unsecured Frontier Enclave Relay",
       "url": "https://eve-survival.org/wikka.php?wakka=UnsecuredFrontierEnclaveRelay"
+    },
+    {
+      "name": "Unsecured Frontier Receiver",
+      "url": "https://eve-survival.org/wikka.php?wakka=UnsecuredFrontierReceiver"
     },
     {
       "name": "Unsecured Perimeter Comms Relay",
