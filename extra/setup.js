@@ -7,6 +7,7 @@ const sqlite = require('sqlite3').verbose();
 const shell = require('vorpal')();
 
 const initialScriptArray = require('./createDBScript');
+const got = require("got");
 let isVerbose = false;
 
 function queryEACH(db, sql, attributes, callback, complete) {
@@ -199,6 +200,91 @@ shell
   .description('Add new links to the JSON file used by the application.')
   .action((args, cb) => {
     readLinks(args).then(() => cb());
+  });
+
+async function linksSynchronization() {
+  const got = require('got');
+  const jsdom = require("jsdom");
+  const {JSDOM} = jsdom;
+
+  const initialUrl = 'https://eve-survival.org';
+
+  const getPage = async (url) => {
+    const response = await got(url);
+    return new JSDOM(response.body);
+  };
+
+  const isInternalLink = (url) => {
+    return url.startsWith('https://eve-survival.org');
+  };
+
+  const isNotDirectLink = (url) => {
+    const c = [/\?.*=.*\/.*$/, /\?.*=.*#.*$/, /\?.*=.*&.*$/];
+    return c.reduce((p, v) => p || v.test(url), false);
+  };
+
+  const linksFile = path.join(__dirname, '..', 'links.json');
+  const data = JSON.parse(fs.readFileSync(linksFile, "utf8"));
+
+  const queue = [initialUrl];
+
+  const urlsSet = new Set();
+  [initialUrl,
+    'https://eve-survival.org/wikka.php?wakka=AnomalyReports',
+    'https://eve-survival.org/wikka.php?wakka=HomePage',
+    'https://eve-survival.org/wikka.php?wakka=QnA',
+    'https://eve-survival.org/wikka.php?wakka=TheTeam',
+    'https://eve-survival.org/wikka.php?wakka=UserDocumentation',
+    'https://eve-survival.org/wikka.php?wakka=OurMission'
+  ].forEach(l => {
+    urlsSet.add(l);
+    urlsSet.add(l + '#');
+  });
+
+  while (queue.length > 0) {
+    const url = queue.shift();
+    console.log(url);
+
+    let dom;
+    try {
+      dom = await getPage(url);
+    } catch (e) {
+      continue;
+    }
+
+    const links = [...dom.window.document.querySelectorAll('a')];
+    for (let i = 0; i < links.length; i++) {
+      const href = links[i].href;
+      if (isInternalLink(href) && !isNotDirectLink(href) && !urlsSet.has(href)) {
+        urlsSet.add(href);
+        urlsSet.add(href + '#');
+        queue.push(href);
+      }
+    }
+
+    const title = dom.window.document.querySelector('h1');
+    if (title) {
+      const href = title.children[0].href;
+      if (`${url}#` === href) {
+        let name = title.children[0].text;
+        name = name.trim().replace(/ +/g, ' ');
+
+        if (!data.links.some(value => value.name === name)) {
+          data.links.push({name, url});
+        }
+      }
+    }
+  }
+
+  data.links.sort((a, b) => a.name.localeCompare(b.name));
+  fs.writeFileSync(linksFile, JSON.stringify(data, null, '  '), "utf8");
+}
+
+shell
+  .command('links sync')
+  .description('Sync link from https://eve-survival.org.')
+  .action((args, cb) => {
+    linksSynchronization(args).then(() => cb());
   });
 
 shell
