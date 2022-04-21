@@ -135,6 +135,7 @@ class Wormhole extends Component {
     const value = this.state.treeRoots.filter(t => t.id !== tabId);
     await sendMessageAndWaitResponse({type: 'save-value', key: 'tabs', value});
     await this.loadTabs();
+    this.setSyncTreeSystem();
   }
 
   async loadTabs() {
