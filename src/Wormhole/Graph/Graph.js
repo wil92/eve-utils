@@ -25,6 +25,7 @@ class Graph extends Component {
       startPosition: {x: 0, y: 0},
       movement: {x: 0, y: 0},
       isModifying: false,
+      rootSystem: null,
       systemTree: {},
       systems: [],
       paths: []
@@ -40,13 +41,16 @@ class Graph extends Component {
       takeUntil(this.unsubscribe)
     ).subscribe(message => {
       this.setState({
-        position: {x: 0, y: 0, scale: 1},
         startPosition: {x: 0, y: 0},
         movement: {x: 0, y: 0},
         systemTree: {},
         systems: [],
         paths: []
       });
+
+      if (!this.state.rootSystem || this.state.rootSystem.id !== message.tree[0].system.id) {
+        this.setState({position: {x: 0, y: 0, scale: 1}});
+      }
 
       const mapNodePos = new Map();
       (message.tree || []).forEach((n, index) => mapNodePos.set(n.system.id, index));
@@ -145,15 +149,13 @@ class Graph extends Component {
   calculateTreePositions(system) {
     this.calculateTree(system, 0, 20);
 
-    let minX = Number.MAX_SAFE_INTEGER, maxX = Number.MIN_SAFE_INTEGER;
-    bfsOverTree(system, (ele) => {
-      minX = Math.min(minX, ele.position.x);
-      maxX = Math.max(maxX, ele.position.x);
-    });
+    let initialX = system.position.x;
     const systems = [];
     bfsOverTree(system, (ele) => {
-      ele.position.x -= (maxX - minX);
+      ele.position.x -= initialX + 20;
       systems.push(ele);
+
+      // set parent
       (ele.wormholes || []).forEach(w => w.destination.wormholeParent = w);
     });
     this.setState({systems});
