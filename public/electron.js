@@ -40,9 +40,9 @@ async function createAuthWindow() {
   communicationService = CommunicationService(window);
   communicationService.registerMessages();
 
-  // if (isDev) {
+  if (isDev) {
     window.webContents.openDevTools({mode: 'right'});
-  // }
+  }
 
   const menu = menuService(window, communicationService);
   window.setMenu(menu.createMenu());
