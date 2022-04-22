@@ -1,6 +1,6 @@
 {
   "name": "eve-utils",
-  "version": "2.2.2-alpha",
+  "version": "2.2.3-alpha",
   "private": true,
   "main": "public/electron.js",
   "homepage": ".",
@@ -12,6 +12,7 @@
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^0.24.0",
+    "buffer": "^6.0.3",
     "crypto": "^1.0.1",
     "moment": "^2.29.1",
     "react": "^17.0.2",
