@@ -578,11 +578,13 @@
       "url": "https://eve-survival.org/wikka.php?wakka=CoreCitadel"
     },
     {
-      "name": "Core Garrison, Class 5",
+      "name": "Core Garrison",
+      "class": "5",
       "url": "https://eve-survival.org/wikka.php?wakka=CoreGarrison"
     },
     {
-      "name": "Core Stronghold, Class 5",
+      "name": "Core Stronghold",
+      "class": "5",
       "url": "https://eve-survival.org/wikka.php?wakka=CoreStronghold"
     },
     {
@@ -910,7 +912,8 @@
       "url": "https://eve-survival.org/wikka.php?wakka=ForgottenCoreDataField"
     },
     {
-      "name": "Forgotten Core Information Pen, Class 5",
+      "name": "Forgotten Core Information Pen",
+      "class": "5",
       "url": "https://eve-survival.org/wikka.php?wakka=ForgottenCoreInformationPen"
     },
     {
@@ -1702,7 +1705,8 @@
       "url": "https://eve-survival.org/wikka.php?wakka=OreHarvestingCOSMOS"
     },
     {
-      "name": "Oruze Osobnyk, Class 5",
+      "name": "Oruze Osobnyk",
+      "class": "5",
       "url": "https://eve-survival.org/wikka.php?wakka=OruzeOsobnyk"
     },
     {
@@ -1930,7 +1934,8 @@
       "url": "https://eve-survival.org/wikka.php?wakka=PurgingAniCOSMOS"
     },
     {
-      "name": "Quarantine Area, Class 5",
+      "name": "Quarantine Area",
+      "class": "5",
       "url": "https://eve-survival.org/wikka.php?wakka=QuarantineArea"
     },
     {
