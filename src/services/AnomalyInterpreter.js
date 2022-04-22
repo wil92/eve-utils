@@ -1,5 +1,4 @@
 import {removeExtraSpaces} from "./Utils";
-import {Buffer} from "buffer";
 
 export const ID_TOKEN = 0;
 export const STRING_TOKEN = 1;
@@ -28,7 +27,9 @@ export class SintacticAnalyser {
    * @param text {string}
    */
   constructor(text) {
-    this.text = Buffer.from(text, "utf8").toString().replaceAll('  ', '\t');
+    this.text = text
+      .replace(/ {2}/g, '\t')
+      .replace(/\r/g, '\n');
     this.ptn = 0;
     this.token = '';
     this.tokens = [];
@@ -210,7 +211,6 @@ export class LexicoAnalyser {
 
   readPercentAndDistance() {
     this.anomaly.percent = removeExtraSpaces(this.consumeToken(PERCENT_TOKEN).value);
-    console.log('token', this.token());
     this.anomaly.distance = removeExtraSpaces(this.consumeToken(DISTANCE_TOKEN).value);
   }
 

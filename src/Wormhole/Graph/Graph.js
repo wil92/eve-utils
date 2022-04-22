@@ -49,7 +49,10 @@ class Graph extends Component {
       });
 
       if (!this.state.rootSystem || this.state.rootSystem.id !== message.tree[0].system.id) {
-        this.setState({position: {x: 0, y: 0, scale: 1}});
+        this.setState({
+          position: {x: 0, y: 0, scale: 1},
+          rootSystem: message.tree[0].system.id
+        });
       }
 
       const mapNodePos = new Map();

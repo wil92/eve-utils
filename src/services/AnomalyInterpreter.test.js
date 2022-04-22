@@ -27,10 +27,10 @@ SZO-744\tCosmic Anomaly\tCombat Site\tThe Ruins of Enclave Cohort 27\t100.0%\t12
 UNU-208\tCosmic Anomaly\tCombat Site\tPerimeter Checkpoint\t100.0%\t3.62 AU
 WNP-100\tCosmic Anomaly\tCombat Site\tPerimeter Checkpoint\t100.0%\t5.38 AU
 WWB-066\tCosmic Anomaly\tCombat Site\tSleeper Data Sanctuary\t100.0%\t4.85 AU
-XJN-554\tCosmic Signature\tWormhole\tUnstable Wormhole\t100.0%\t5.96 AU
-XMI-883\tCosmic Anomaly\tCombat Site\tSleeper Data Sanctuary\t100.0%\t7.54 AU`;
+XJN-554\tCosmic Signature\tWormhole\tUnstable Wormhole\t100,0%\t5,96 AU
+XMI-883\tCosmic Anomaly\tCombat Site\tSleeper Data Sanctuary\t100.0%\t7,54 AU`;
 
-const TEXT_EXAMPLE2 = `DXU-571\tCosmic Signature\tWormhole\tUnstable Wormhole\t100.0%\t14 km
+const TEXT_EXAMPLE2 = `DXU-571\tCosmic Signature\tWormhole\tUnstable Wormhole\t100.0%\t14 km\r
 BIL-425\tCosmic Anomaly\tCombat Site\tPerimeter Checkpoint\t100.0%\t2.54 AU
 CDT-856\tCosmic Anomaly\tOre Site\tUncommon Core Deposit\t100.0%\t6.76 AU
 FTJ-448\tCosmic Anomaly\tCombat Site\tPerimeter Hangar\t100.0%\t21.76 AU
