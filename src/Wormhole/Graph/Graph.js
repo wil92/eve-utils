@@ -25,7 +25,7 @@ class Graph extends Component {
       startPosition: {x: 0, y: 0},
       movement: {x: 0, y: 0},
       isModifying: false,
-      rootSystem: null,
+      rootSystemId: null,
       systemTree: {},
       systems: [],
       paths: []
@@ -48,10 +48,10 @@ class Graph extends Component {
         paths: []
       });
 
-      if (!this.state.rootSystem || this.state.rootSystem.id !== message.tree[0].system.id) {
+      if (!this.state.rootSystemId || this.state.rootSystemId !== message.tree[0].system.id) {
         this.setState({
           position: {x: 0, y: 0, scale: 1},
-          rootSystem: message.tree[0].system.id
+          rootSystemId: message.tree[0].system.id
         });
       }
 
