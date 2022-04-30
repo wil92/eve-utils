@@ -22,7 +22,6 @@ async function settingUpDB() {
   dbConfig.saveAnomalies = async (anomalies) => {
     const database = dbConfig.client.db('eve');
     const anomalyCollection = database.collection('anomaly');
-
     for (let anomaly of anomalies) {
       const query = {id: anomaly.id, system_id: anomaly.system_id};
       const it = await anomalyCollection.findOne(query);
