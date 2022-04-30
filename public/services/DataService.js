@@ -4,6 +4,7 @@ const semver = require('semver');
 const sqlite = require('sqlite3').verbose();
 
 const httpService = require('./HttpService');
+const syncWithServerService = require('./SyncWithServerService');
 const databaseName = 'data.db';
 
 let database;
@@ -28,6 +29,27 @@ module.exports = {
       await this.downloadDB(lastDBName, dbPath);
       database = new sqlite.Database(dbPath);
     }
+
+    await this.syncAnomaliesWithServer();
+  },
+
+  async syncAnomaliesWithServer() {
+    const anomalies = await syncWithServerService.getAnomalies();
+    // console.log(anomalies);
+    const serverAnomaliesSet = new Set();
+    for (let anomaly of anomalies) {
+      serverAnomaliesSet.add(anomaly.id + anomaly['system_id']);
+      await this.saveAnomaly(anomaly, anomaly['system_id']);
+    }
+
+    const localAnomalies = await this.loadAnomalies();
+    const newAnomaliesToSaveInServer = [];
+    for (let anomaly of localAnomalies) {
+      if (!serverAnomaliesSet.has(anomaly.id + anomaly['system_id'])) {
+        newAnomaliesToSaveInServer.push(anomaly);
+      }
+    }
+    await syncWithServerService.saveAnomalies(newAnomaliesToSaveInServer);
   },
 
   async downloadDB(dbName, dbPath) {
@@ -200,6 +222,8 @@ module.exports = {
    */
   async saveAnomaliesAndRemoveMissing(anomalies, systemId) {
     const oldAnomalies = await this.loadAnomaliesBySystemId(systemId);
+    const removedAnomalies = [];
+    const savedAnomalies = [];
     const used = new Set();
     anomalies.forEach(a => used.add(a.id));
 
@@ -210,6 +234,7 @@ module.exports = {
         for (let i = 0; i < oldAnomalies.length; i++) {
           if (!used.has(oldAnomalies[i].id)) {
             this.removeAnomalyById(oldAnomalies[i].id, systemId);
+            removedAnomalies.push({id: oldAnomalies[i].id, system_id: systemId});
           }
         }
 
@@ -225,8 +250,13 @@ module.exports = {
         const v = oldAnomaliesMap.get(anomalies[i].id);
         ['system_destination'].forEach(k => oldValues[k] = v[k]);
       }
-      await this.saveAnomaly({...anomalies[i], ...oldValues}, systemId);
+      const newAnomaly = {...anomalies[i], ...oldValues}
+      await this.saveAnomaly(newAnomaly, systemId);
+      savedAnomalies.push({...newAnomaly, system_id: systemId});
     }
+
+    await syncWithServerService.removeAnomalies(removedAnomalies);
+    await syncWithServerService.saveAnomalies(savedAnomalies);
   },
 
   /**

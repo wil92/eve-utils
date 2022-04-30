@@ -13,6 +13,7 @@ const AuthService = require("./AuthService");
 const SyncDataService = require('./SyncDataService');
 const periodService = require("./PeriodicTasksService");
 const config = require("./config");
+const syncWithServerService = require("./SyncWithServerService");
 
 const authService = AuthService(config);
 const syncDataService = SyncDataService(authService);
@@ -101,9 +102,12 @@ module.exports = (window) => {
       });
 
       ipcMain.on('remove-anomalies', async (event, data) => {
+        const removedAnomalies = [];
         for (let i = 0; i < data.anomalies.length; i++) {
           await dataService.removeAnomalyById(data.anomalies[i], data.systemId);
+          removedAnomalies.push({id: data.anomalies[i], system_id: data.systemId});
         }
+        await syncWithServerService.removeAnomalies(removedAnomalies);
         await this.sendSystemAnomalies(data.systemId, data.id);
       });
 

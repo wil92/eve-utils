@@ -1,11 +1,28 @@
 version: "3.3"
 
 services:
+
   eve-utils:
     build:
       context: .
     restart: always
+    networks:
+      - eve
     ports:
       - "127.0.0.1:${PORT}:4538"
     volumes:
       - $DOWNLOAD_DIRECTORY:/app/download
+
+  eve-database:
+    image: mongo:4.0.13
+    restart: always
+    networks:
+      - eve
+    volumes:
+      - $DB_DIRECTORY:/data/db
+    ports:
+      - "127.0.0.1:27017:27017"
+
+networks:
+  eve:
+    external: true

@@ -16,10 +16,22 @@ module.exports = {
   async utilsGET(url) {
     return rp({
       method: 'GET',
-      url: url
+      url
     }).then(res => {
       return JSON.parse(res);
     });
+  },
+
+  async utilsPOST(url, body) {
+    return rp({
+      method: 'POST',
+      url,
+      body,
+      json: true
+    }).then(res => {
+      console.log(res);
+      return res;
+    })
   },
 
   async utilsDownload(url, pathToSave) {

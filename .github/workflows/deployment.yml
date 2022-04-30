@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: create .env file
-        run: echo "PORT=${{ secrets.PORT }}" > .env && echo "DOWNLOAD_DIRECTORY=${{ secrets.DOWNLOAD_DIRECTORY }}" >> .env
+        run: echo "PORT=${{ secrets.PORT }}" > .env && echo "DOWNLOAD_DIRECTORY=${{ secrets.DOWNLOAD_DIRECTORY }}" >> .env && echo "DB_DIRECTORY=${{ secrets.DB_DIRECTORY }}" >> .env
 
       - name: Copy project to the hosting
         uses: easingthemes/ssh-deploy@v2.1.5
