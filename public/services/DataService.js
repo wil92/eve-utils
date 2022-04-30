@@ -35,6 +35,7 @@ module.exports = {
 
   async syncAnomaliesWithServer() {
     const anomalies = await syncWithServerService.getAnomalies();
+    console.log()
     const serverAnomaliesSet = new Set();
     for (let anomaly of anomalies) {
       serverAnomaliesSet.add(anomaly.id + anomaly['system_id']);
@@ -42,13 +43,11 @@ module.exports = {
     }
 
     const localAnomalies = await this.loadAnomalies();
-    const newAnomaliesToSaveInServer = [];
     for (let anomaly of localAnomalies) {
       if (!serverAnomaliesSet.has(anomaly.id + anomaly['system_id'])) {
-        newAnomaliesToSaveInServer.push(anomaly);
+        await this.removeAnomalyById(anomaly.id, anomaly['system_id']);
       }
     }
-    await syncWithServerService.saveAnomalies(newAnomaliesToSaveInServer);
   },
 
   async downloadDB(dbName, dbPath) {

@@ -71,7 +71,11 @@ class Wormhole extends Component {
   }
 
   initialSetup() {
-    this.subscription = observable.pipe(filter(m => m.type === 'get-current-location-response'), filter(m => m.location.system.id !== this.state.currentSystem.id), takeUntil(this.unsubscribe)).subscribe(message => {
+    this.subscription = observable.pipe(
+      filter(m => m.type === 'get-current-location-response'),
+      filter(m => m.location.system.id !== this.state.currentSystem.id),
+      takeUntil(this.unsubscribe)
+    ).subscribe(message => {
       this.setState({currentSystem: message.location.system});
       this.props.updateCurrentSystem(message.location.system);
       if (this.state.syncUserSystem) {
@@ -89,7 +93,10 @@ class Wormhole extends Component {
         sendMessage({type: 'load-tree', systemId: message.location.system.id});
       }
     });
-    this.subscription = observable.pipe(filter(m => m.type === 'load-anomalies-response'), takeUntil(this.unsubscribe)).subscribe(message => {
+    this.subscription = observable.pipe(
+      filter(m => m.type === 'load-anomalies-response'),
+      takeUntil(this.unsubscribe)
+    ).subscribe(message => {
       this.setState({
         systemAnomalies: message.anomalies.map(a => ({
           ...a,
@@ -98,7 +105,10 @@ class Wormhole extends Component {
         })).sort((a, b) => a.id.localeCompare(b.id))
       });
     });
-    this.subscription = observable.pipe(filter(m => m.type === 'load-system-response'), takeUntil(this.unsubscribe)).subscribe(message => {
+    this.subscription = observable.pipe(
+      filter(m => m.type === 'load-system-response'),
+      takeUntil(this.unsubscribe)
+    ).subscribe(message => {
       this.setState({
         system: {
           name: message.system.name,
@@ -109,7 +119,10 @@ class Wormhole extends Component {
       });
       sendMessage({type: 'load-anomalies', systemId: message.system.id});
     });
-    this.subscription = observable.pipe(filter(m => m.type === 'update-anomaly-destination-response'), takeUntil(this.unsubscribe)).subscribe(message => {
+    this.subscription = observable.pipe(
+      filter(m => m.type === 'update-anomaly-destination-response' || m.type === 'sync-with-server-response'),
+      takeUntil(this.unsubscribe)
+    ).subscribe(() => {
       sendMessage({type: 'load-tree', systemId: this.state.treeRootId});
       sendMessage({type: 'load-anomalies', systemId: this.state.system.id});
     });

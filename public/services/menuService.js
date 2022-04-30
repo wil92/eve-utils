@@ -20,6 +20,7 @@ module.exports = (window, communicationService, dataService) => ({
             label: 'Sync',
             click: async () => {
               await dataService.syncAnomaliesWithServer();
+              window.webContents.send('in-message', {type: 'sync-with-server-response', id: new Date().getTime()});
             }
           },
           {

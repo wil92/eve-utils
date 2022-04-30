@@ -34,14 +34,14 @@ class App extends Component {
 
           <Tabs forceRenderTabPanel direction={'ltr'}>
             <TabList>
-              <Tab>Market</Tab>
               <Tab>Wormhole</Tab>
+              <Tab>Market</Tab>
             </TabList>
             <TabPanel>
-              <Market/>
+              <Wormhole/>
             </TabPanel>
             <TabPanel>
-              <Wormhole/>
+              <Market/>
             </TabPanel>
           </Tabs>
 
