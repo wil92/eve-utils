@@ -1,6 +1,6 @@
 const {Menu: MenuService} = require("electron");
 
-module.exports = (window, communicationService) => ({
+module.exports = (window, communicationService, dataService) => ({
   window,
 
   createMenu() {
@@ -15,11 +15,13 @@ module.exports = (window, communicationService) => ({
       {
         label: 'App',
         submenu: [
-          // {
-          //   role: 'syncData', label: 'Sync data', click: async () => {
-          //     window.webContents.send('in-message', {type: 'show-sync-data-dialog'});
-          //   }
-          // },
+          {
+            role: 'syncData',
+            label: 'Sync',
+            click: async () => {
+              await dataService.syncAnomaliesWithServer();
+            }
+          },
           {
             role: 'logout',
             label: 'Logout',

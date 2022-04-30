@@ -35,7 +35,6 @@ module.exports = {
 
   async syncAnomaliesWithServer() {
     const anomalies = await syncWithServerService.getAnomalies();
-    // console.log(anomalies);
     const serverAnomaliesSet = new Set();
     for (let anomaly of anomalies) {
       serverAnomaliesSet.add(anomaly.id + anomaly['system_id']);

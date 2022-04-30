@@ -44,7 +44,7 @@ async function createAuthWindow() {
     window.webContents.openDevTools({mode: 'right'});
   }
 
-  const menu = menuService(window, communicationService);
+  const menu = menuService(window, communicationService, dataService);
   window.setMenu(menu.createMenu());
 
   const auth = await dataService.loadObjValue('auth');

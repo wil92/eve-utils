@@ -20,8 +20,8 @@ services:
       - eve
     volumes:
       - $DB_DIRECTORY:/data/db
-    ports:
-      - "127.0.0.1:27017:27017"
+#    ports:
+#      - "127.0.0.1:27017:27017"
 
 networks:
   eve:
